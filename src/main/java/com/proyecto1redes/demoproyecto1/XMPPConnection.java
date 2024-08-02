@@ -15,22 +15,38 @@ import java.security.GeneralSecurityException;
 @Service
 public class XMPPConnection {
 
+    private AbstractXMPPConnection connection;
+
     public AbstractXMPPConnection connect(String username, String password) throws GeneralSecurityException, IOException, XMPPException, SmackException, InterruptedException {
-        //SSLContext sslContext = SSLContext.getInstance("TLS");
+        if (connection == null || !connection.isConnected()) {
 
-        //@SuppressWarnings("deprecation")
-        XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                .setUsernameAndPassword(username, password)
-                .setXmppDomain("alumchat.lol")
-                .setHost("alumchat.lol")
-                //.setPort(5222)
-                //.setCustomSSLContext(sslContext)
-                .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-                .build();
+            //SSLContext sslContext = SSLContext.getInstance("TLS");
 
-        AbstractXMPPConnection connection = new XMPPTCPConnection(config);
-        connection.connect();
-        connection.login();
+            //@SuppressWarnings("deprecation")
+            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+                    .setUsernameAndPassword(username, password)
+                    .setXmppDomain("alumchat.lol")
+                    .setHost("alumchat.lol")
+                    //.setCustomSSLContext(sslContext)
+                    .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+                    .build();
+
+            connection = new XMPPTCPConnection(config);
+            connection.connect();
+            connection.login();
+        }
         return connection;
     }
+
+    public AbstractXMPPConnection getConnection() {
+        return connection;
+    }
+
+    public void disconnect() throws SmackException.NotConnectedException, InterruptedException {
+        if (connection != null && connection.isConnected()) {
+            connection.disconnect();
+        }
+        connection = null;
+    }
+    
 }

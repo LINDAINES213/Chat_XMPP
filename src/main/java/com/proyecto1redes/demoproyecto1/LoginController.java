@@ -1,7 +1,5 @@
 package com.proyecto1redes.demoproyecto1;
 
-
-import com.proyecto1redes.demoproyecto1.XMPPConnection;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -21,6 +19,8 @@ public class LoginController {
     @Autowired
     private XMPPConnection xmppConnection;
 
+    private AbstractXMPPConnection connection;
+
     @GetMapping("/")
     public String home() {
         return "home";
@@ -29,7 +29,7 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
-            AbstractXMPPConnection connection = xmppConnection.connect(username, password);
+            connection = xmppConnection.connect(username, password);
             model.addAttribute("message", "Welcome " + connection.getUser());
             return "loggedin";
         } catch (GeneralSecurityException | IOException | XMPPException | SmackException | InterruptedException e) {
@@ -38,5 +38,16 @@ public class LoginController {
             return "home";
         }
     }
-}
 
+    @PostMapping("/")
+    public String logout(Model model) throws SmackException.NotConnectedException, InterruptedException {
+        if (connection != null && connection.isConnected()) {
+            connection.disconnect();
+            connection = null; // Asegurar que la conexión se limpia después de desconectar
+            model.addAttribute("message", "You have been logged out successfully.");
+        } else {
+            model.addAttribute("message", "You are not connected.");
+        }
+        return "redirect:/";
+    }
+}

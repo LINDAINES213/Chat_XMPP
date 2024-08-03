@@ -3,113 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Success</title>
+    <title>Ventana de Chat</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1000px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .header {
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .logout {
+            background-color: #ff5c5c;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .logout:hover {
+            background-color: #ff3333;
+        }
+
+        .chat-container {
+            display: flex;
+            height: calc(100% - 50px); /* Altura menos la altura de la cabecera */
         }
 
         .sidebar {
-            width: 250px;
-            background-color: #2c3e50;
-            color: white;
-            padding: 1rem;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
+            width: 25%;
+            background-color: #f1f1f1;
+            padding: 10px;
+            box-sizing: border-box;
+            flex: 0 0 auto;
             display: flex;
             flex-direction: column;
         }
 
-        .sidebar h2 {
-            margin: 0;
-            padding-bottom: 1rem;
-            font-size: 1.5rem;
-            border-bottom: 2px solid #ecf0f1;
+        .search-bar {
+            margin-bottom: 10px;
         }
 
-        .sidebar ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
+        .search-bar input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
-        .sidebar ul li {
-            margin-bottom: 0.5rem;
+        .contact {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            flex-shrink: 0; /* Evita que se encoja el contenedor de contacto */
         }
 
-        .sidebar ul li a {
-            color: #ecf0f1;
-            text-decoration: none;
-            font-size: 1rem;
-            display: block;
-            padding: 0.75rem;
-            border-radius: 4px;
-            transition: background-color 0.3s, color 0.3s;
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
 
-        .sidebar ul li a:hover {
-            background-color: #34495e;
-            color: #ffffff;
+        .contact-info p {
+            margin: 5px 0;
         }
 
-        .content {
-            margin-left: 250px;
-            padding: 2rem;
-            width: calc(100% - 250px);
+        .last-seen {
+            font-size: 0.8em;
+            color: gray;
+        }
+
+        .chat {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
-            background-color: #ffffff;
-            border: 1px solid #dcdcdc;
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-        }
-
-        .message h1 {
-            color: #2c3e50;
-            margin: 0 0 0.5rem 0;
+            margin-bottom: 20px;
         }
 
         .message p {
-            color: #34495e;
-            font-size: 1rem;
             margin: 0;
+            font-size: 0.8em;
+            color: gray;
         }
 
+        .message-content {
+            background-color: #e6e6e6;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 60%;
+        }
 
+        .from-user .message-content {
+            background-color: #d1ecf1;
+            align-self: flex-end;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #f1f1f1;
+            border-top: 1px solid #ccc;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Menú</h2>
-        <ul>
-            <li><a href="#">Mostrar todos los usuarios/contactos y su estado</a></li>
-            <li><a href="#">Agregar un usuario a los contactos</a></li>
-            <li><a href="#">Mostrar detalles de contacto de un usuario</a></li>
-            <li><a href="#">Comunicación 1 a 1 con cualquier usuario/contacto</a></li>
-            <li><a href="#">Participar en conversaciones grupales</a></li>
-            <li><a href="#">Definir mensaje de presencia</a></li>
-            <li><a href="#">Enviar/recibir notificaciones</a></li>
-            <li><a href="#">Enviar/recibir archivos</a></li>
-        </ul>
-    </div>
-    <div class="content">
-        <div class="message">
-            <p th:text="${message}"></p>
+    <div class="container">
+        <div class="header">
+            <h3 th:text="${message}"></h3>
+            <form action="/" method="post" onsubmit="return confirm('Are you sure you want to logout?');">
+                <input class="logout" type="submit" value="Logout">
+            </form>
+        </div>
+        <div class="chat-container">
+            <div class="sidebar">
+                <div class="search-bar">
+                    <input type="text" placeholder="Search contacts...">
+                </div>
+                <div class="contact">
+                    <img src="avatar.png" alt="Avatar" class="avatar">
+                    <div class="contact-info">
+                        <p>Martin</p>
+                        <p class="last-seen">Last seen: 2 mins ago</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat" id="chat">
+                <div class="message">
+                    <p>18:21, Sun 27 Jun</p>
+                    <div class="message-content">Hello Alice</div>
+                </div>
+                <div class="message from-user">
+                    <p>15:21, Sun 27 Jun</p>
+                    <div class="message-content">Hello Martin</div>
+                </div>
+                <div class="message from-user">
+                    <p>15:21, Sun 27 Jun</p>
+                    <div class="message-content">How are you?</div>
+                </div>
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Enter text here...">
+            <button id="sendButton">Send</button>
         </div>
     </div>
+    <script>
+        document.getElementById('sendButton').addEventListener('click', function() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value;
+
+            if (messageText.trim() !== '') {
+                const chat = document.getElementById('chat');
+                
+                const message = document.createElement('div');
+                message.classList.add('message', 'from-user');
+                
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const date = new Date().toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' });
+
+                message.innerHTML = `<p>${time}, ${date}</p><div class="message-content">${messageText}</div>`;
+                
+                chat.appendChild(message);
+                chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
+
+                messageInput.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
-

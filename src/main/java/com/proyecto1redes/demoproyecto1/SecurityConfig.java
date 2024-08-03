@@ -16,7 +16,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .anyRequest().permitAll() // Permite acceso a todas las rutas sin autenticación
             )
-            .csrf(csrf -> csrf.disable()); // Desactiva CSRF para simplificar
+            .csrf(csrf -> csrf.disable()) // Desactiva CSRF para simplificar
+
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+            );
 
         return http.build();
     }

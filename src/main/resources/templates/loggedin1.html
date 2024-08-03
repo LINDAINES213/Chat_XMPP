@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            margin: 0;
+            padding-bottom: 1rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            font-size: 1rem;
+            display: block;
+            padding: 0.75rem;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #34495e;
+            color: #ffffff;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            width: calc(100% - 250px);
+        }
+
+        .message {
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .message h1 {
+            color: #2c3e50;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .message p {
+            color: #34495e;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menú</h2>
+        <ul>
+            <li><a href="#">Mostrar todos los usuarios/contactos y su estado</a></li>
+            <li><a href="#">Agregar un usuario a los contactos</a></li>
+            <li><a href="#">Mostrar detalles de contacto de un usuario</a></li>
+            <li><a href="#">Comunicación 1 a 1 con cualquier usuario/contacto</a></li>
+            <li><a href="#">Participar en conversaciones grupales</a></li>
+            <li><a href="#">Definir mensaje de presencia</a></li>
+            <li><a href="#">Enviar/recibir notificaciones</a></li>
+            <li><a href="#">Enviar/recibir archivos</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <div class="message">
+            <p th:text="${message}"></p>
+        </div>
+    </div>
+</body>
+</html>
+

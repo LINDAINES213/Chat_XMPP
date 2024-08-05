@@ -46,13 +46,12 @@ public class LoginController {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @PostMapping("/search")
     public String search(@RequestParam String searchUsername, Model model) {
         try {
             if (connection != null && connection.isAuthenticated()) {
                 Roster roster = Roster.getInstanceFor(connection);
-                roster.createEntry(JidCreate.bareFrom(searchUsername + "@alumchat.lol"), searchUsername, new String[]{});
+                roster.createItemAndRequestSubscription(JidCreate.bareFrom(searchUsername + "@alumchat.lol"), searchUsername, new String[]{});
                 Set<RosterEntry> entries = roster.getEntries();
                 model.addAttribute("message", "User " + searchUsername + " added to contacts.");
                 model.addAttribute("userList", entries);

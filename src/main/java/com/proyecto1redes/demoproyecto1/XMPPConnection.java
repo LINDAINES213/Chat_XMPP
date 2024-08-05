@@ -18,7 +18,6 @@ public class XMPPConnection {
     public AbstractXMPPConnection connect(String username, String password) throws GeneralSecurityException, IOException, XMPPException, SmackException, InterruptedException {
         //SSLContext sslContext = SSLContext.getInstance("TLS");
 
-        //@SuppressWarnings("deprecation")
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                 .setUsernameAndPassword(username, password)
                 .setXmppDomain("alumchat.lol")

@@ -102,25 +102,30 @@ body {
 .contact-list {
     list-style-type: none;
     padding: 0;
+    /*max-height: 400px;*/
+    overflow-y: auto;
 }
 
 .contact-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     padding: 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
+    height: auto;
+    margin-bottom: 10px;
 }
-
-.contact-item img {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
-}
-
 .contact-item span {
     font-size: 18px;
+    font-weight: bold;
+}
+.presence-info {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+.presence-mode {
+    font-weight: bold;
 }
 
 .contact-item.selected {
@@ -165,10 +170,11 @@ body {
     box-sizing: border-box;
     background-color: #f1f1f1;
     border-top: 1px solid #ccc;
+    width: auto;
 }
 
 input[type="text"] {
-    width: auto;
+    width: 100%;
     padding: 10px;
     box-sizing: border-box;
     border: 1px solid #ccc;
@@ -191,3 +197,4 @@ button {
 button:hover {
     background-color: #555;
 }
+

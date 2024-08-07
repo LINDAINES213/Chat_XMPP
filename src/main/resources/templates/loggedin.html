@@ -30,7 +30,20 @@
                     <!-- Iterar sobre la lista de usuarios y mostrarlos -->
                     <li class="contact-item" th:each="user : ${userList}" onclick="selectUser(this)" data-jid="${user.getJid().toString()}">
                         <span th:text="${user.getJid().toString()}"></span>
+                        <!--<ul>
+                            <li th:each="user : ${presencesMap[user.getJid().toString()]}">
+                             <span th:text="${user.mode}"></span>: <span th:text="${user.status}"></span>
+                            </li>
+                        </ul>-->
                     </li>
+                    <!--<li th:each="entry : ${userList}">
+                    <span th:text="${entry.name}"></span> - <span th:text="${entry.jid}"></span>
+                    <ul>
+                        <li th:each="presence : ${presencesMap[entry.jid.toString()]}">
+                            <span th:text="${presence.mode}"></span>: <span th:text="${presence.status}"></span>
+                        </li>
+                        </ul>
+                    </li>-->
                 </ul>
             </div>
             <div class="chat" id="chat">

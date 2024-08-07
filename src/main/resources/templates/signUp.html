@@ -8,17 +8,19 @@
 </head>
 <body>
     <div class="container">
-        <h1>Chat Log In</h1>
-        <form action="/login" method="post">
+        <h1>Chat Sign Up</h1>
+        <form action="/register" method="post">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
+            <!--<label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>-->
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required><br>
-            <input type="submit" value="Login">
-        </form>
-        <form action="/signup" method="get">
-            <p style="text-align: center;">or</p>
             <input type="submit" value="Sign In">
+        </form>
+        <form action="/" method="get">
+            <p style="text-align: center;">or</p>
+            <input type="submit" value="LogIn">
         </form>
         <p class="error" th:if="${error}" th:text="${error}"></p>
     </div>

@@ -4,18 +4,27 @@ import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jxmpp.jid.Jid;
+import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.springframework.stereotype.Service;
+import org.jivesoftware.smack.packet.Message.Type;
+import org.jivesoftware.smack.packet.MessageBuilder;
+import org.jivesoftware.smack.roster.Roster;
 
 //import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Scanner;
 
 @Service
 public class XMPPConnection {
+
+    private AbstractXMPPConnection connection;
 
     public AbstractXMPPConnection connect(String username, String password) throws GeneralSecurityException, IOException, XMPPException, SmackException, InterruptedException {
         //SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -51,4 +60,6 @@ public class XMPPConnection {
 
         connection.disconnect();
     }
+
+    
 }

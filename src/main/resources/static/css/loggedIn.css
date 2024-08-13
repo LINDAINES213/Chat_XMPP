@@ -167,21 +167,21 @@ body {
     display: flex;
     align-items: center;
     padding: 10px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Asegura que el padding y borde se incluyan en el ancho total */
     background-color: #f1f1f1;
     border-top: 1px solid #ccc;
-    width: auto;
+    width: 2000; /* Asegura que ocupe todo el ancho del contenedor padre */
 }
 
 input[type="text"] {
-    width: 100%;
+    flex: 1; /* Permite que el input ocupe todo el espacio disponible */
     padding: 10px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Asegura que el padding se incluya en el ancho total */
     border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
+    border-radius: 5px 0 0 5px; /* Radio de borde ajustado para la esquina izquierda */
     font-size: 16px;
     outline: none;
+    width: 890px;
 }
 
 button {
@@ -190,11 +190,11 @@ button {
     background-color: #333;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 0 5px 5px 0; /* Radio de borde ajustado para la esquina derecha */
     cursor: pointer;
+    flex-shrink: 0; /* Evita que el botón se reduzca */
 }
 
 button:hover {
     background-color: #555;
 }
-

@@ -28,13 +28,8 @@
                 <h4>Users</h4>
                 <ul class="contact-list" id="contactList">
                     <!-- Iterar sobre la lista de usuarios y mostrarlos -->
-                    <li class="contact-item" th:each="user : ${userList}" onclick="selectUser(this)" data-jid="${user.getJid().toString()}">
-                        <span th:text="${user.getJid().toString()}"></span>
-                        <!--<ul>
-                            <li th:each="user : ${presencesMap[user.getJid().toString()]}">
-                             <span th:text="${user.mode}"></span>: <span th:text="${user.status}"></span>
-                            </li>
-                        </ul>-->
+                    <li class="contact-item" th:each="user : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
+                        <span th:text="${user.jid}"></span>
                     </li>
                     <!--<li th:each="entry : ${userList}">
                     <span th:text="${entry.name}"></span> - <span th:text="${entry.jid}"></span>
@@ -51,9 +46,13 @@
             </div>
         </div>
         <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Enter text here...">
-            <button id="sendButton">Send</button>
+            <form action="/send" method="post">
+                <input type="hidden" name="recipientJid" id="recipientJid" value="">
+                <input class="chat_input" type="text" id="messageInput" name="messageText" placeholder="Enter text here...">
+                <button type="submit" id="sendButton">Send</button>
+            </form>            
         </div>
+        
     </div>
 </body>
 </html>

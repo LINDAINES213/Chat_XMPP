@@ -3,6 +3,7 @@ package com.proyecto1redes.demoproyecto1;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
@@ -16,6 +17,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.jivesoftware.smack.packet.StanzaBuilder;
+
 
 
 import java.io.IOException;
@@ -177,16 +180,18 @@ public class LoginController {
             }
             model.addAttribute("presencesMap", presencesMap);
 
-            // Add listener to update presence in real-time
+            //sendMessage("echobot@alumchat.lol", "HOLA");
+
+            
             roster.addRosterListener(new RosterListener() {
                 @Override
                 public void entriesAdded(Collection<Jid> addresses) {
-                    // Optional: logic for new entries
+                   
                 }
             
                 @Override
                 public void entriesUpdated(Collection<Jid> addresses) {
-                    // Optional: logic for updated entries
+                    
                 }
             
                 @Override
@@ -195,14 +200,15 @@ public class LoginController {
                     String readPresence = getPresenceStatus(presence);
                     presencesMap.put(fromJid.toString(), readPresence);
                     System.out.println("Presence changed for " + fromJid + ": " + readPresence + " - " + presence.getStatus());
-                    // Notify clients about the presence change
-                    // This can be done using WebSocket or another real-time mechanism
+                    
                 }
 
                 @Override
                 public void entriesDeleted(Collection<Jid> addresses) {
                     // Optional: logic for deleted entries
                 }
+
+                
             });
 
             return "loggedin";
@@ -231,7 +237,40 @@ public class LoginController {
         }
     }
 
+    @PostMapping("/send")
+    public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, Model model) {
+        try {
+            if (connection != null && connection.isAuthenticated()) {
+                sendMessage(recipientJid, messageText);
+                model.addAttribute("message", "Message sent to " + recipientJid);
+                System.out.println("Message sent to " + recipientJid);
+            } else {
+                model.addAttribute("error", "Not connected to XMPP server.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Failed to send message: " + e.getMessage());
+        }
+        return "loggedin";
+    }
 
+    private void sendMessage(String recipientJid, String messageContent) {
+        try {
+            Jid recipient = JidCreate.bareFrom(recipientJid);
+            
+            Message message = StanzaBuilder.buildMessage()
+                .to(recipient)
+                .ofType(Message.Type.chat)
+                .setBody(messageContent)
+                .build();
+            
+            connection.sendStanza(message);
+            System.out.println("Message sent to " + recipientJid);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to send message: " + e.getMessage());
+        }
+    }
 
 
 

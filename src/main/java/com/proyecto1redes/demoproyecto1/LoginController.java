@@ -158,6 +158,7 @@ public class LoginController {
         }
     }*/
 
+    @SuppressWarnings("deprecation")
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
@@ -165,11 +166,14 @@ public class LoginController {
             Roster roster = Roster.getInstanceFor(connection);
             roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 
+            // Enviar presencia disponible después de conectar
+            //connection.sendStanza(new Presence(Presence.Type.available));
+
             Set<RosterEntry> entries = roster.getEntries();
             model.addAttribute("message", "Welcome " + connection.getUser());
             model.addAttribute("userList", entries);
 
-            // Map to store user presence information
+            // Mapa para almacenar información de presencia de los usuarios
             Map<String, String> presencesMap = new HashMap<>();
             for (RosterEntry entry : entries) {
                 BareJid entryBareJid = entry.getJid().asBareJid();
@@ -180,35 +184,38 @@ public class LoginController {
             }
             model.addAttribute("presencesMap", presencesMap);
 
-            //sendMessage("echobot@alumchat.lol", "HOLA");
+            // Listener para recibir mensajes
+            connection.addAsyncStanzaListener(stanza -> {
+                if (stanza instanceof Message) {
+                    Message message = (Message) stanza;
+                    String from = message.getFrom().toString();
+                    String body = message.getBody();
 
-            
+                    System.out.println("Mensaje recibido de " + from + ": " + body);
+
+                    // Aquí puedes manejar el mensaje como desees, por ejemplo, almacenarlo en la base de datos
+                } else {
+                    System.out.println("Stanza recibida, pero no es un mensaje: " + stanza.toString());
+                }
+            }, stanza -> stanza instanceof Message);
+
             roster.addRosterListener(new RosterListener() {
                 @Override
-                public void entriesAdded(Collection<Jid> addresses) {
-                   
-                }
-            
+                public void entriesAdded(Collection<Jid> addresses) {}
+
                 @Override
-                public void entriesUpdated(Collection<Jid> addresses) {
-                    
-                }
-            
+                public void entriesUpdated(Collection<Jid> addresses) {}
+
                 @Override
                 public void presenceChanged(Presence presence) {
                     BareJid fromJid = presence.getFrom().asBareJid();
                     String readPresence = getPresenceStatus(presence);
                     presencesMap.put(fromJid.toString(), readPresence);
                     System.out.println("Presence changed for " + fromJid + ": " + readPresence + " - " + presence.getStatus());
-                    
                 }
 
                 @Override
-                public void entriesDeleted(Collection<Jid> addresses) {
-                    // Optional: logic for deleted entries
-                }
-
-                
+                public void entriesDeleted(Collection<Jid> addresses) {}
             });
 
             return "loggedin";
@@ -232,6 +239,7 @@ public class LoginController {
             return "Offline ❌";
         } else if (presence.getMode() == Presence.Mode.available) {
             return "Available ✅";
+
         } else {
             return "Unknown";
         }

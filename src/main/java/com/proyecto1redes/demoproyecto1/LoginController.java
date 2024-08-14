@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 
 
@@ -244,6 +245,21 @@ public class LoginController {
             return "Unknown";
         }
     }
+
+    @GetMapping("/presences")
+    @ResponseBody
+    public Map<String, String> getPresences() {
+        Roster roster = Roster.getInstanceFor(connection);
+        Map<String, String> presencesMap = new HashMap<>();
+        for (RosterEntry entry : roster.getEntries()) {
+            BareJid entryBareJid = entry.getJid().asBareJid();
+            Presence presence = roster.getPresence(entryBareJid);
+            String readPresence = getPresenceStatus(presence);
+            presencesMap.put(entryBareJid.toString(), readPresence);
+        }
+        return presencesMap;
+    }
+
 
     @PostMapping("/send")
     public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, Model model) {

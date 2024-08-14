@@ -30,6 +30,7 @@
                     <!-- Iterar sobre la lista de usuarios y mostrarlos -->
                     <li class="contact-item" th:each="user : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
                         <span th:text="${user.jid}"></span>
+                        <span class="status" th:text="${presencesMap[user.jid.toString()]}"></span>
                     </li>
                     <!--<li th:each="entry : ${userList}">
                     <span th:text="${entry.name}"></span> - <span th:text="${entry.jid}"></span>

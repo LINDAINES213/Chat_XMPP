@@ -1,42 +1,5 @@
-let selectedUser = null;
-const messages = {};
-
-function selectUser(element) {
-    // Eliminar la clase 'selected' de todos los elementos de la lista
-    const items = document.querySelectorAll('.contact-item');
-    items.forEach(item => item.classList.remove('selected'));
-    
-    // Añadir la clase 'selected' al elemento clicado
-    element.classList.add('selected');
-
-    // Obtener el JID del usuario seleccionado
-    selectedUser = element.getAttribute('data-jid');
-
-    // Imprimir el JID del usuario seleccionado en la consola
-    console.log('Usuario seleccionado:', selectedUser);
-
-    // Configurar el campo oculto con el JID del destinatario
-    document.getElementById('recipientJid').value = selectedUser;
-
-    // Cargar mensajes del usuario seleccionado
-    loadMessages(selectedUser);
-}
-
-
-function loadMessages(user) {
-    const chat = document.getElementById('chat');
-    chat.innerHTML = '';
-
-    if (messages[user]) {
-        messages[user].forEach(msg => {
-            const message = document.createElement('div');
-            message.classList.add('message', msg.fromUser ? 'from-user' : '');
-            message.innerHTML = `<p>${msg.time}, ${msg.date}</p><div class="message-content">${msg.text}</div>`;
-            chat.appendChild(message);
-        });
-        chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
-    }
-}
+// Tiempo en milisegundos entre cada actualización (ej. 5000 ms = 5 segundos)
+const updateInterval = 5000;
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const sendButton = document.getElementById('sendButton');
@@ -98,4 +61,51 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
     }
+
+    // Comenzar a actualizar las presencias periódicamente
+    updatePresences();
+    setInterval(updatePresences, updateInterval);
 });
+
+function updatePresences() {
+    fetch('/presences')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Presencias actualizadas:', data);
+            updateContactList(data);
+        })
+        .catch(error => console.error('Error al obtener presencias:', error));
+}
+
+function updateContactList(presences) {
+    const contactList = document.getElementById('contactList');
+    const items = contactList.querySelectorAll('.contact-item');
+    
+    items.forEach(item => {
+        const jid = item.getAttribute('data-jid');
+        if (presences[jid]) {
+            item.querySelector('.status').textContent = presences[jid];
+        }
+    });
+}
+
+function selectUser(element) {
+    // Eliminar la clase 'selected' de todos los elementos de la lista
+    const items = document.querySelectorAll('.contact-item');
+    items.forEach(item => item.classList.remove('selected'));
+    
+    // Añadir la clase 'selected' al elemento clicado
+    element.classList.add('selected');
+
+    // Obtener el JID del usuario seleccionado
+    selectedUser = element.getAttribute('data-jid');
+
+    // Imprimir el JID del usuario seleccionado en la consola
+    console.log('Usuario seleccionado:', selectedUser);
+
+    // Configurar el campo oculto con el JID del destinatario
+    document.getElementById('recipientJid').value = selectedUser;
+
+    // Cargar mensajes del usuario seleccionado
+    loadMessages(selectedUser);
+}

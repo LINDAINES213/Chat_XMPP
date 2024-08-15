@@ -27,6 +27,8 @@ public class XMPPConnection {
                 .setHost("alumchat.lol")
                 //.setPort(5222)
                 //.setCustomSSLContext(sslContext)
+                .setCompressionEnabled(false)
+                .setResource("myStaticResource")
                 .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                 .build();
 

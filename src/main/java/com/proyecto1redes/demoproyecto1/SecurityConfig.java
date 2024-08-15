@@ -19,10 +19,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Desactiva CSRF para simplificar
 
             .logout(logout -> logout
-                .logoutUrl("/logout")
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
-            );
+                .logoutUrl("/perform_logout")
+                .logoutSuccessUrl("/") // Redirige a la página principal tras el logout
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+                
+        );
+
 
         return http.build();
     }

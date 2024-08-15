@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ventana de Chat</title>
+    <title>Chat</title>
     <link rel="stylesheet" href="/css/loggedIn.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <script src="/js/loggedIn.js"></script>
         <div class="header">
             <h3 th:text="${message}"></h3>
-            <form action="/" method="post" onsubmit="return confirm('Are you sure you want to logout?');">
+            <form action="/logout" method="post" onsubmit="return confirm('Are you sure you want to logout?');">
                 <input class="logout" type="submit" value="Logout">
             </form>
         </div>
@@ -28,18 +28,11 @@
                 <h4>Users</h4>
                 <ul class="contact-list" id="contactList">
                     <!-- Iterar sobre la lista de usuarios y mostrarlos -->
-                    <li class="contact-item" th:each="user : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
+                    <li class="contact-item" th:each="user, iter : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
                         <span th:text="${user.jid}"></span>
-                        <span class="status" th:text="${presencesMap[user.jid.toString()]}"></span>
+                        <span style="font-size: 13px; color: rgb(86, 84, 84);" th:text="${presencesMap[user.jid.toString()].mode}"></span>
+                        <span style="font-size: 12px; color: rgb(86, 84, 84)" th:text="${presencesMap[user.jid.toString()].status}"></span>
                     </li>
-                    <!--<li th:each="entry : ${userList}">
-                    <span th:text="${entry.name}"></span> - <span th:text="${entry.jid}"></span>
-                    <ul>
-                        <li th:each="presence : ${presencesMap[entry.jid.toString()]}">
-                            <span th:text="${presence.mode}"></span>: <span th:text="${presence.status}"></span>
-                        </li>
-                        </ul>
-                    </li>-->
                 </ul>
             </div>
             <div class="chat" id="chat">
@@ -53,7 +46,6 @@
                 <button type="submit" id="sendButton">Send</button>
             </form>            
         </div>
-        
     </div>
 </body>
 </html>

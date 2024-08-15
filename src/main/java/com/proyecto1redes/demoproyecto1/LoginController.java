@@ -1,14 +1,19 @@
 package com.proyecto1redes.demoproyecto1;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.chat2.Chat;
+import org.jivesoftware.smack.chat2.ChatManager;
+import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jxmpp.jid.BareJid;
+import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +23,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.jivesoftware.smack.packet.StanzaBuilder;
-
-
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +42,8 @@ public class LoginController {
 
     private AbstractXMPPConnection connection;
 
-    private String readPresence;
+    private Map<String, List<String>> messagesMap = new HashMap<>();
+
 
     @GetMapping("/")
     public String home() {
@@ -159,7 +164,8 @@ public class LoginController {
         }
     }*/
 
-    @SuppressWarnings("deprecation")
+    
+
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
@@ -167,38 +173,27 @@ public class LoginController {
             Roster roster = Roster.getInstanceFor(connection);
             roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 
-            // Enviar presencia disponible después de conectar
-            //connection.sendStanza(new Presence(Presence.Type.available));
-
             Set<RosterEntry> entries = roster.getEntries();
             model.addAttribute("message", "Welcome " + connection.getUser());
             model.addAttribute("userList", entries);
 
-            // Mapa para almacenar información de presencia de los usuarios
-            Map<String, String> presencesMap = new HashMap<>();
+            Map<String, Map<String, String>> presencesMap = new HashMap<>();
             for (RosterEntry entry : entries) {
                 BareJid entryBareJid = entry.getJid().asBareJid();
                 Presence presence = roster.getPresence(entryBareJid);
-                String readPresence = getPresenceStatus(presence);
-                presencesMap.put(entryBareJid.toString(), readPresence);
-                System.out.println("Presences for " + entryBareJid + ": " + readPresence);
+                Map<String, String> presenceDetails = new HashMap<>();
+                presenceDetails.put("status", presence.getStatus());
+                presenceDetails.put("mode", getPresenceStatus(presence));
+                presencesMap.put(entryBareJid.toString(), presenceDetails);
+                System.out.println("Presences for " + entryBareJid + ":" + presenceDetails);
+
+
             }
             model.addAttribute("presencesMap", presencesMap);
 
-            // Listener para recibir mensajes
-            connection.addAsyncStanzaListener(stanza -> {
-                if (stanza instanceof Message) {
-                    Message message = (Message) stanza;
-                    String from = message.getFrom().toString();
-                    String body = message.getBody();
-
-                    System.out.println("Mensaje recibido de " + from + ": " + body);
-
-                    // Aquí puedes manejar el mensaje como desees, por ejemplo, almacenarlo en la base de datos
-                } else {
-                    System.out.println("Stanza recibida, pero no es un mensaje: " + stanza.toString());
-                }
-            }, stanza -> stanza instanceof Message);
+            // Inicializar el mapa de mensajes
+            Map<String, List<String>> messagesMap = new HashMap<>();
+            model.addAttribute("messagesMap", messagesMap);
 
             roster.addRosterListener(new RosterListener() {
                 @Override
@@ -210,13 +205,34 @@ public class LoginController {
                 @Override
                 public void presenceChanged(Presence presence) {
                     BareJid fromJid = presence.getFrom().asBareJid();
-                    String readPresence = getPresenceStatus(presence);
-                    presencesMap.put(fromJid.toString(), readPresence);
-                    System.out.println("Presence changed for " + fromJid + ": " + readPresence + " - " + presence.getStatus());
+                    Map<String, String> presenceDetails = new HashMap<>();
+                    presenceDetails.put("status", presence.getStatus());
+                    presenceDetails.put("mode", getPresenceStatus(presence));
+                    presencesMap.put(fromJid.toString(), presenceDetails);
+                    System.out.println("Presence changed for " + fromJid + ":" + presenceDetails);
                 }
 
                 @Override
                 public void entriesDeleted(Collection<Jid> addresses) {}
+            });
+
+            ChatManager chatManager = ChatManager.getInstanceFor(connection);
+
+            chatManager.addIncomingListener(new IncomingChatMessageListener() {
+                @Override
+                public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
+                    String fromJid = from.toString();
+                    String messageBody = message.getBody();
+
+                    // Añadir mensaje al mapa
+                    messagesMap.computeIfAbsent(fromJid, k -> new ArrayList<>()).add(messageBody);
+
+                    // Actualizar el modelo para que los mensajes sean accesibles desde la vista
+                    model.addAttribute("messagesMap", messagesMap);
+
+                    // Imprimir mensaje en la consola (opcional)
+                    System.out.println("Received message from " + from + ": " + message.getBody());
+                }
             });
 
             return "loggedin";
@@ -227,7 +243,35 @@ public class LoginController {
         }
     }
 
+
+
+    private void checkConnectionStatus() {
+        if (connection == null) {
+            System.out.println("Connection is null.");
+        } else if (!connection.isAuthenticated()) {
+            System.out.println("Connection is not authenticated.");
+        } else {
+            System.out.println("Connection is established and authenticated.");
+        }
+    }
+
     private String getPresenceStatus(Presence presence) {
+        switch (presence.getMode()) {
+            case xa:
+                return "Not Available 🔴";
+            case dnd:
+                return "Busy 🟠";
+            case away:
+                return "Away 🚶🏽";
+            case chat:
+                return "Available to Chat 💬";
+            default:
+                return "Available ✅";
+        }
+    }
+    
+
+    /*private String getPresenceStatus(Presence presence) {
         if (presence.getMode() == Presence.Mode.xa) {
             return "Not Available 🔴";
         } else if (presence.getMode() == Presence.Mode.dnd) {
@@ -244,7 +288,7 @@ public class LoginController {
         } else {
             return "Unknown";
         }
-    }
+    }*/
 
     @GetMapping("/presences")
     @ResponseBody
@@ -281,20 +325,20 @@ public class LoginController {
     private void sendMessage(String recipientJid, String messageContent) {
         try {
             Jid recipient = JidCreate.bareFrom(recipientJid);
-            
-            Message message = StanzaBuilder.buildMessage()
-                .to(recipient)
-                .ofType(Message.Type.chat)
-                .setBody(messageContent)
-                .build();
-            
-            connection.sendStanza(message);
+            ChatManager chatManager = ChatManager.getInstanceFor(connection);
+            Chat chat = chatManager.chatWith((EntityBareJid) recipient);
+    
+            chat.send(messageContent);
             System.out.println("Message sent to " + recipientJid);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Failed to send message: " + e.getMessage());
         }
     }
+
+    
+    
+    
 
 
 
@@ -317,15 +361,24 @@ public class LoginController {
     }
 
 
-    @PostMapping("/")
-    public String logout(Model model) throws SmackException.NotConnectedException, InterruptedException {
+    @PostMapping("/logout")
+    public String logout(Model model) {
         if (connection != null && connection.isConnected()) {
-            connection.disconnect();
-            connection = null; // Asegurar que la conexión se limpia después de desconectar
-            model.addAttribute("message", "You have been logged out successfully.");
+            try {
+                connection.disconnect();
+                checkConnectionStatus();
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("error", "Error al desconectar: " + e.getMessage());
+                return "loggedin";
+            }
         } else {
-            model.addAttribute("message", "You are not connected.");
+            System.out.println("No había conexión activa.");
         }
+
+        model.addAttribute("message", "Sesión cerrada exitosamente.");
         return "redirect:/";
     }
+
+
 }

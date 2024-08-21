@@ -24,20 +24,38 @@ function selectUser(element) {
     loadMessages(selectedUser);
 }
 
-function loadMessages(user) {
+function loadMessages(sender) {
     const chat = document.getElementById('chat');
-    chat.innerHTML = '';
+    chat.innerHTML = '';  // Limpiar el chat antes de cargar mensajes
 
-    if (messages[user]) {
-        messages[user].forEach(msg => {
-            const message = document.createElement('div');
-            message.classList.add('message', msg.fromUser ? 'from-user' : '');
-            message.innerHTML = `<p>${msg.time}, ${msg.date}</p><div class="message-content">${msg.text}</div>`;
-            chat.appendChild(message);
+    if (messages[sender]) {
+        messages[sender].forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+
+            // Aplicar la clase 'from-user' si el mensaje fue enviado por el usuario actual
+            if (message.fromUser) {
+                messageElement.classList.add('from-user');
+            }
+
+            // Si tienes más clases para agregar, asegúrate de que no estén vacías
+            if (message.additionalClasses && message.additionalClasses.length > 0) {
+                const validClasses = message.additionalClasses.filter(cls => cls.trim() !== '');
+                messageElement.classList.add(...validClasses);
+            }
+
+            messageElement.innerHTML = `
+                <p>${message.time}, ${message.date}</p>
+                <div class="message-content">${message.text}</div>
+            `;
+            chat.appendChild(messageElement);
         });
-        chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
+
+        chat.scrollTop = chat.scrollHeight;  // Scroll al final del chat
     }
 }
+
+
 
 // Este bloque de código se ejecuta cuando el WebSocket recibe un mensaje
 stompClient.connect({}, function (frame) {
@@ -53,12 +71,55 @@ stompClient.connect({}, function (frame) {
     });
 
     stompClient.subscribe('/topic/messageUpdates', function (message) {
-        // Manejar mensajes de chat
-        console.log('Chat message:', JSON.parse(message.body));
+        try {
+            const msgData = JSON.parse(message.body);
+    
+            // Itera sobre cada usuario en los datos recibidos
+            for (const [sender, messagesArray] of Object.entries(msgData)) {
+                // Verifica si el mensaje es del usuario actualmente seleccionado
+                if (selectedUser === sender) {
+                    // Obtén el último mensaje del usuario seleccionado
+                    const latestMessage = messagesArray[messagesArray.length - 1];
+                    
+                    // Agrega el mensaje al chat solo si pertenece al usuario seleccionado
+                    addMessageToChat(sender, latestMessage);
+                }
+            }
+        } catch (error) {
+            console.error('Error al procesar el mensaje:', error);
+        }
     });
+    
+    
 }, function (error) {
     console.error('STOMP error:', error);
 });
+
+function addMessageToChat(sender, messageText) {
+    const chat = document.getElementById('chat');
+    
+    const message = document.createElement('div');
+    message.classList.add('message');
+    
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const date = new Date().toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' });
+
+    message.innerHTML = `<p>${time}, ${date}</p><div class="message-content">${messageText}</div>`;
+    
+    chat.appendChild(message);
+    chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
+
+    // Guarda el mensaje en el objeto messages
+    if (!messages[sender]) {
+        messages[sender] = [];
+    }
+    messages[sender].push({
+        text: messageText,
+        time: time,
+        date: date,
+        fromUser: false
+    });
+}
 
 // Función para actualizar la lista de contactos
 function updateContactList(presenceData) {

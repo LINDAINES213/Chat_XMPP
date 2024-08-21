@@ -259,18 +259,29 @@ public class LoginController {
     }
 
     private String getPresenceStatus(Presence presence) {
-        switch (presence.getMode()) {
-            case xa:
-                return "Not Available 🔴";
-            case dnd:
-                return "Busy 🟠";
-            case away:
-                return "Away 🚶🏽";
-            case chat:
-                return "Available to Chat 💬";
+        switch (presence.getType()) {
+            case unavailable:
+                return "Offline ❌";
+            case available:  // Asegúrate de incluir un caso para "available" si es necesario
+                
+                switch (presence.getMode()) {
+                    case available:
+                        return "Available ✅";
+                    case xa:
+                        return "Not Available 🔴";
+                    case dnd:
+                        return "Busy 🟠";
+                    case away:
+                        return "Away 🚶🏽";
+                    case chat:
+                        return "Available to Chat 💬";
+                    default:
+                        return "Offline ❌";
+                }
             default:
-                return "Available ✅";
-        }
+                break;
+            }
+        return null;
     }
 
 

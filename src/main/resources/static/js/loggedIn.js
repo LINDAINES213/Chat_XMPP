@@ -74,7 +74,7 @@ function updateContactList(presenceData) {
         listItem.innerHTML = `
             <span>${user}</span>
             <div class="contact-status">${details.mode || 'Desconocido'}</div>
-            <div class="contact-status-detail">${details.status || 'Sin estado'}</div>
+            <div class="contact-status-detail">${details.status || ''}</div>
         `;
 
         // Añadir el evento onclick para el nuevo elemento

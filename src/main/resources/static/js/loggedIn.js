@@ -108,6 +108,15 @@ function showNotificationIcon(sender) {
     }
 }
 
+// Función para reproducir el sonido de notificación
+function playNotificationSound() {
+    const notificationSound = document.getElementById('notificationSound');
+    if (notificationSound) {
+        notificationSound.play().catch((error) => {
+            console.error('Error al reproducir el sonido de notificación:', error);
+        });
+    }
+}
 
 // Este bloque de código se ejecuta cuando el WebSocket recibe un mensaje
 stompClient.connect({}, function (frame) {
@@ -145,6 +154,7 @@ stompClient.connect({}, function (frame) {
                         // Mostrar un ícono de notificación si el usuario no está seleccionado
                         if (selectedUser !== sender) {
                             showNotificationIcon(sender);
+                            playNotificationSound();
                         }
                     }
                 });
@@ -152,6 +162,7 @@ stompClient.connect({}, function (frame) {
                 if (selectedUser === sender) {
                     loadMessages(sender);
                 }
+                
             }
         } catch (error) {
             console.error('Error al procesar el mensaje:', error);

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.util.HtmlUtils;
 
 @Controller
-public class PresenceWebSocketController {
+public class WebSocketController {
 
     @MessageMapping("/presence")
     @SendTo("/topic/presenceUpdates")
@@ -15,6 +15,16 @@ public class PresenceWebSocketController {
         return new PresenceMessage(
             HtmlUtils.htmlEscape(message.getUser()), 
             HtmlUtils.htmlEscape(message.getStatus())
+        );
+    }
+
+    @MessageMapping("/message")
+    @SendTo("/topic/messageUpdates")
+    public ChatMessage handleMessage(ChatMessage message) {
+        return new ChatMessage(
+            HtmlUtils.htmlEscape(message.getSender()), 
+            HtmlUtils.htmlEscape(message.getRecipient()),
+            HtmlUtils.htmlEscape(message.getContent())
         );
     }
 }

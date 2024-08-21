@@ -51,6 +51,11 @@ stompClient.connect({}, function (frame) {
             console.error('Error parsing message:', error);
         }
     });
+
+    stompClient.subscribe('/topic/messageUpdates', function (message) {
+        // Manejar mensajes de chat
+        console.log('Chat message:', JSON.parse(message.body));
+    });
 }, function (error) {
     console.error('STOMP error:', error);
 });

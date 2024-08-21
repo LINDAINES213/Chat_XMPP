@@ -22,10 +22,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -232,6 +228,7 @@ public class LoginController {
                     String messageBody = message.getBody();
                     messagesMap.computeIfAbsent(fromJid, k -> new ArrayList<>()).add(messageBody);
                     model.addAttribute("messagesMap", messagesMap);
+                    messagingTemplate.convertAndSend("/topic/messageUpdates", messagesMap);
                     System.out.println("Message received from " + fromJid + ": " + messageBody);
                     System.out.println("Messages map: " + messagesMap);
                 }
@@ -262,8 +259,7 @@ public class LoginController {
         switch (presence.getType()) {
             case unavailable:
                 return "Offline ❌";
-            case available:  // Asegúrate de incluir un caso para "available" si es necesario
-                
+            case available:                
                 switch (presence.getMode()) {
                     case available:
                         return "Available ✅";

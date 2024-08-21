@@ -13,7 +13,6 @@ public class PresenceMessage {
     }
 
     // Getters and setters
-    // Getters y setters
     public String getUser() {
         return user;
     }

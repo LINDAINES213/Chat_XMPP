@@ -7,21 +7,57 @@ function selectUser(element) {
     // Eliminar la clase 'selected' de todos los elementos de la lista
     const items = document.querySelectorAll('.contact-item');
     items.forEach(item => item.classList.remove('selected'));
-    
+
     // Añadir la clase 'selected' al elemento clicado
     element.classList.add('selected');
 
     // Obtener el JID del usuario seleccionado
     selectedUser = element.getAttribute('data-jid');
 
-    // Imprimir el JID del usuario seleccionado en la consola
-    console.log('Usuario seleccionado:', selectedUser);
-
     // Configurar el campo oculto con el JID del destinatario
     document.getElementById('recipientJid').value = selectedUser;
 
     // Cargar mensajes del usuario seleccionado
     loadMessages(selectedUser);
+
+    // Remover el ícono de notificación cuando se selecciona al usuario
+    const notificationIcon = element.querySelector('.notification-icon');
+    if (notificationIcon) {
+        notificationIcon.remove();
+    }
+}
+
+// Función para actualizar la lista de contactos
+function updateContactList(presenceData) {
+    const contactList = document.getElementById('contactList');
+    if (!contactList) {
+        console.error('Elemento #contactList no encontrado');
+        return;
+    }
+
+    contactList.innerHTML = ''; // Limpiar la lista existente
+
+    for (const [user, details] of Object.entries(presenceData)) {
+        const listItem = document.createElement('li');
+        listItem.classList.add('contact-item');
+        listItem.setAttribute('data-jid', user);
+
+        // Agregar detalles del usuario y presencia
+        listItem.innerHTML = `
+            <span>${user}</span>
+            <div class="contact-status">${details.mode || 'Desconocido'}</div>
+            <div class="contact-status-detail">${details.status || ''}</div>
+        `;
+
+        // Añadir el evento onclick para el nuevo elemento
+        listItem.onclick = function() {
+            selectUser(this);
+        };
+
+        contactList.appendChild(listItem);
+    }
+
+    console.log('Lista de contactos actualizada:', contactList.innerHTML);
 }
 
 function loadMessages(sender) {
@@ -55,6 +91,22 @@ function loadMessages(sender) {
     }
 }
 
+// Función para mostrar el ícono de notificación
+function showNotificationIcon(sender) {
+    const userElement = document.querySelector(`[data-jid="${sender}"]`);
+    if (userElement) {
+        // Añadir una clase o ícono de notificación al usuario que envió el mensaje
+        let notificationIcon = userElement.querySelector('.notification-icon');
+        if (!notificationIcon) {
+            // Crear el ícono si no existe
+            notificationIcon = document.createElement('img');
+            notificationIcon.src = './images/notificacion.png';  // Ruta del ícono de notificación
+            notificationIcon.classList.add('notification-icon');
+            notificationIcon.alt = 'Nuevo mensaje';
+            userElement.appendChild(notificationIcon);
+        }
+    }
+}
 
 
 // Este bloque de código se ejecuta cuando el WebSocket recibe un mensaje
@@ -70,26 +122,41 @@ stompClient.connect({}, function (frame) {
         }
     });
 
+    // Suscripción a las actualizaciones de mensajes
     stompClient.subscribe('/topic/messageUpdates', function (message) {
         try {
             const msgData = JSON.parse(message.body);
     
-            // Itera sobre cada usuario en los datos recibidos
             for (const [sender, messagesArray] of Object.entries(msgData)) {
-                // Verifica si el mensaje es del usuario actualmente seleccionado
+                if (!messages[sender]) {
+                    messages[sender] = [];
+                }
+
+                messagesArray.forEach((messageText) => {
+                    const isDuplicate = messages[sender].some(msg => msg.text === messageText && !msg.fromUser);
+                    if (!isDuplicate) {
+                        messages[sender].push({
+                            text: messageText,
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            date: new Date().toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' }),
+                            fromUser: false
+                        });
+
+                        // Mostrar un ícono de notificación si el usuario no está seleccionado
+                        if (selectedUser !== sender) {
+                            showNotificationIcon(sender);
+                        }
+                    }
+                });
+
                 if (selectedUser === sender) {
-                    // Obtén el último mensaje del usuario seleccionado
-                    const latestMessage = messagesArray[messagesArray.length - 1];
-                    
-                    // Agrega el mensaje al chat solo si pertenece al usuario seleccionado
-                    addMessageToChat(sender, latestMessage);
+                    loadMessages(sender);
                 }
             }
         } catch (error) {
             console.error('Error al procesar el mensaje:', error);
         }
     });
-    
     
 }, function (error) {
     console.error('STOMP error:', error);
@@ -122,7 +189,7 @@ function addMessageToChat(sender, messageText) {
 }
 
 // Función para actualizar la lista de contactos
-function updateContactList(presenceData) {
+/*function updateContactList(presenceData) {
     const contactList = document.getElementById('contactList');
     if (!contactList) {
         console.error('Elemento #contactList no encontrado');
@@ -152,10 +219,15 @@ function updateContactList(presenceData) {
     }
 
     console.log('Lista de contactos actualizada:', contactList.innerHTML);
-}
+}*/
 
 // Este bloque de código se ejecuta cuando la página está cargada
 document.addEventListener('DOMContentLoaded', (event) => {
+
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+    }
+
     const sendButton = document.getElementById('sendButton');
     const messageInput = document.getElementById('messageInput');
 

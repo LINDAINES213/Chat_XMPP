@@ -202,3 +202,9 @@ button:hover {
 .presences {
     font-size: 1px;
 }
+
+.notification-icon {
+    width: 25px;
+    height: 25px;
+    margin-left: 185px;
+}

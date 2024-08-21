@@ -1,5 +1,7 @@
 let selectedUser = null;
 const messages = {};
+var socket = new SockJS('http://localhost:2422/ws-presence');
+var stompClient = Stomp.over(socket);
 
 function selectUser(element) {
     // Eliminar la clase 'selected' de todos los elementos de la lista
@@ -22,7 +24,6 @@ function selectUser(element) {
     loadMessages(selectedUser);
 }
 
-
 function loadMessages(user) {
     const chat = document.getElementById('chat');
     chat.innerHTML = '';
@@ -38,6 +39,56 @@ function loadMessages(user) {
     }
 }
 
+// Este bloque de código se ejecuta cuando el WebSocket recibe un mensaje
+stompClient.connect({}, function (frame) {
+    console.log('Connected: ' + frame);
+    stompClient.subscribe('/topic/presenceUpdates', function (presenceMessage) {
+        try {
+            var message = JSON.parse(presenceMessage.body);
+            console.log("Received presence update:", message);
+            updateContactList(message);
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    });
+}, function (error) {
+    console.error('STOMP error:', error);
+});
+
+// Función para actualizar la lista de contactos
+function updateContactList(presenceData) {
+    const contactList = document.getElementById('contactList');
+    if (!contactList) {
+        console.error('Elemento #contactList no encontrado');
+        return;
+    }
+
+    contactList.innerHTML = ''; // Limpiar la lista existente
+
+    for (const [user, details] of Object.entries(presenceData)) {
+        const listItem = document.createElement('li');
+        listItem.classList.add('contact-item');
+        listItem.setAttribute('data-jid', user);
+        
+        // Agregar detalles del usuario y presencia
+        listItem.innerHTML = `
+            <span>${user}</span>
+            <div class="contact-status">${details.mode || 'Desconocido'}</div>
+            <div class="contact-status-detail">${details.status || 'Sin estado'}</div>
+        `;
+
+        // Añadir el evento onclick para el nuevo elemento
+        listItem.onclick = function() {
+            selectUser(this);
+        };
+        
+        contactList.appendChild(listItem);
+    }
+
+    console.log('Lista de contactos actualizada:', contactList.innerHTML);
+}
+
+// Este bloque de código se ejecuta cuando la página está cargada
 document.addEventListener('DOMContentLoaded', (event) => {
     const sendButton = document.getElementById('sendButton');
     const messageInput = document.getElementById('messageInput');
@@ -92,9 +143,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         fromUser: true
                     });
 
+                    // Limpiar el campo de entrada
                     messageInput.value = '';
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error al enviar el mensaje:', error);
+                });
             }
         });
     }

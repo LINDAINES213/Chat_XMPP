@@ -1,7 +1,6 @@
 package com.proyecto1redes.demoproyecto1;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat2.Chat;
@@ -17,6 +16,7 @@ import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +24,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +42,12 @@ public class LoginController {
     @Autowired
     private XMPPConnection xmppConnection;
 
+    private Map<String, Map<String, String>> presencesMap = new HashMap<>();
+
     private AbstractXMPPConnection connection;
 
-    private Map<String, List<String>> messagesMap = new HashMap<>();
-
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/")
     public String home() {
@@ -175,9 +179,11 @@ public class LoginController {
 
             Set<RosterEntry> entries = roster.getEntries();
             model.addAttribute("message", "Welcome " + connection.getUser());
-            model.addAttribute("userList", entries);
 
+            // Inicializar el mapa de presencias
             Map<String, Map<String, String>> presencesMap = new HashMap<>();
+
+            // Cargar la información de presencia de todos los contactos
             for (RosterEntry entry : entries) {
                 BareJid entryBareJid = entry.getJid().asBareJid();
                 Presence presence = roster.getPresence(entryBareJid);
@@ -185,15 +191,13 @@ public class LoginController {
                 presenceDetails.put("status", presence.getStatus());
                 presenceDetails.put("mode", getPresenceStatus(presence));
                 presencesMap.put(entryBareJid.toString(), presenceDetails);
-                System.out.println("Presences for " + entryBareJid + ":" + presenceDetails);
-
-
             }
-            model.addAttribute("presencesMap", presencesMap);
 
-            // Inicializar el mapa de mensajes
-            Map<String, List<String>> messagesMap = new HashMap<>();
-            model.addAttribute("messagesMap", messagesMap);
+            // Enviar la información de presencia por WebSocket
+            messagingTemplate.convertAndSend("/topic/presenceUpdates", presencesMap);
+            System.out.println("Presence New" + presencesMap);
+
+            model.addAttribute("presencesMap", presencesMap);
 
             roster.addRosterListener(new RosterListener() {
                 @Override
@@ -209,29 +213,27 @@ public class LoginController {
                     presenceDetails.put("status", presence.getStatus());
                     presenceDetails.put("mode", getPresenceStatus(presence));
                     presencesMap.put(fromJid.toString(), presenceDetails);
-                    System.out.println("Presence changed for " + fromJid + ":" + presenceDetails);
+
+                    // Enviar la información de presencia actualizada por WebSocket
+                    messagingTemplate.convertAndSend("/topic/presenceUpdates", presencesMap);
+                    System.out.println("Presence changed" + presencesMap);
                 }
 
                 @Override
                 public void entriesDeleted(Collection<Jid> addresses) {}
             });
 
+            Map<String, List<String>> messagesMap = new HashMap<>();
             ChatManager chatManager = ChatManager.getInstanceFor(connection);
-
             chatManager.addIncomingListener(new IncomingChatMessageListener() {
                 @Override
                 public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
                     String fromJid = from.toString();
                     String messageBody = message.getBody();
-
-                    // Añadir mensaje al mapa
                     messagesMap.computeIfAbsent(fromJid, k -> new ArrayList<>()).add(messageBody);
-
-                    // Actualizar el modelo para que los mensajes sean accesibles desde la vista
                     model.addAttribute("messagesMap", messagesMap);
-
-                    // Imprimir mensaje en la consola (opcional)
-                    System.out.println("Received message from " + from + ": " + message.getBody());
+                    System.out.println("Message received from " + fromJid + ": " + messageBody);
+                    System.out.println("Messages map: " + messagesMap);
                 }
             });
 
@@ -242,6 +244,7 @@ public class LoginController {
             return "home";
         }
     }
+
 
 
 
@@ -269,44 +272,12 @@ public class LoginController {
                 return "Available ✅";
         }
     }
-    
 
-    /*private String getPresenceStatus(Presence presence) {
-        if (presence.getMode() == Presence.Mode.xa) {
-            return "Not Available 🔴";
-        } else if (presence.getMode() == Presence.Mode.dnd) {
-            return "Busy 🟠";
-        } else if (presence.getMode() == Presence.Mode.away) {
-            return "Away 🚶🏽";
-        } else if (presence.getMode() == Presence.Mode.chat) {
-            return "Available to Chat 💬";
-        } else if (presence.getType() == Presence.Type.unavailable) {
-            return "Offline ❌";
-        } else if (presence.getMode() == Presence.Mode.available) {
-            return "Available ✅";
-
-        } else {
-            return "Unknown";
-        }
-    }*/
-
-    @GetMapping("/presences")
-    @ResponseBody
-    public Map<String, String> getPresences() {
-        Roster roster = Roster.getInstanceFor(connection);
-        Map<String, String> presencesMap = new HashMap<>();
-        for (RosterEntry entry : roster.getEntries()) {
-            BareJid entryBareJid = entry.getJid().asBareJid();
-            Presence presence = roster.getPresence(entryBareJid);
-            String readPresence = getPresenceStatus(presence);
-            presencesMap.put(entryBareJid.toString(), readPresence);
-        }
-        return presencesMap;
-    }
 
 
     @PostMapping("/send")
     public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, Model model) {
+        
         try {
             if (connection != null && connection.isAuthenticated()) {
                 sendMessage(recipientJid, messageText);
@@ -335,12 +306,6 @@ public class LoginController {
             System.out.println("Failed to send message: " + e.getMessage());
         }
     }
-
-    
-    
-    
-
-
 
     @PostMapping("/search")
     public String search(@RequestParam String searchUsername, Model model) {

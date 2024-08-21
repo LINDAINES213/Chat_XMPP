@@ -38,8 +38,6 @@ public class LoginController {
     @Autowired
     private XMPPConnection xmppConnection;
 
-    private Map<String, Map<String, String>> presencesMap = new HashMap<>();
-
     private AbstractXMPPConnection connection;
 
     @Autowired
@@ -68,104 +66,7 @@ public class LoginController {
         }
     }
 
-    /*@PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, Model model) {
-        try {
-            connection = xmppConnection.connect(username, password);
-            Roster roster = Roster.getInstanceFor(connection);
-            roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all); // O el modo de suscripción que prefieras
-            
-
-            Set<RosterEntry> entries = roster.getEntries();
-            model.addAttribute("message", "Welcome " + connection.getUser());
-            model.addAttribute("userList", entries);
-
-            Map<String, List<Presence>> presencesMap = new HashMap<>();
-            for (RosterEntry entry : entries) {
-                BareJid entryBareJid = entry.getJid().asBareJid();
-                List<Presence> presences = roster.getAllPresences(entryBareJid);
-                presencesMap.put(entryBareJid.toString(), presences);
-
-            
-
-                // Imprimir la información de presencia en la consola
-                System.out.println("Presences for " + entryBareJid + ":");
-                for (Presence presence : presences) {
-                    String readPresence = "";
-                    if (presence.getMode() == Presence.Mode.xa) {
-                        readPresence = "Not Available 🔴";
-                    } else if (presence.getMode() == Presence.Mode.dnd) {
-                        readPresence = "Busy 🟠";
-                    } else if (presence.getMode() == Presence.Mode.away) {
-                        readPresence = "Away🚶🏽";
-                    } else if (presence.getMode() == Presence.Mode.chat) {
-                        readPresence = "Available to Chat 💬";
-                    } else if (presence.getType() == Presence.Type.unavailable) {
-                        readPresence = "Offline ❌";
-                    } else if (presence.getMode() == Presence.Mode.available) {
-                        readPresence = "Available ✅";
-                    }
-                
-                    System.out.println("  Mode: " + readPresence);
-                    System.out.println("  Status: " + presence.getStatus());
-                    System.out.println("  Type: " + presence.getType());
-                }
-            }
-
-            // Agregar el listener para actualizar la presencia en tiempo real
-            roster.addRosterListener(new RosterListener() {
-                @Override
-                public void entriesAdded(Collection<Jid> addresses) {
-                    // Opcional: lógica para cuando se agreguen nuevas entradas al roster
-                }
-            
-                @Override
-                public void entriesUpdated(Collection<Jid> addresses) {
-                    // Opcional: lógica para cuando se actualicen entradas en el roster
-                }
-            
-                @Override
-                public void presenceChanged(Presence presence) {
-                    BareJid fromJid = presence.getFrom().asBareJid();
-                    if (presence.getMode() == Presence.Mode.xa) {
-                        readPresence = "Not Available 🔴";
-                    } else if (presence.getMode() == Presence.Mode.dnd) {
-                        readPresence = "Busy 🟠";
-                    } else if (presence.getMode() == Presence.Mode.away) {
-                        readPresence = "Away 🚶🏽";
-                    } else if (presence.getMode() == Presence.Mode.chat) {
-                        readPresence = "Available to Chat 💬";
-                    } else if (presence.getType() == Presence.Type.unavailable) {
-                        readPresence = "Offline ❌";
-                    } else if (presence.getMode() == Presence.Mode.available) {
-                        readPresence = "Available ✅";
-                    }
-
-                    System.out.println("Presence changed for " + fromJid + ":");
-                    System.out.println("  Mode: " + readPresence);
-                    System.out.println("  Status: " + presence.getStatus());
-                    System.out.println("  Type: " + presence.getType());
-            
-                    
-                }
-
-                @Override
-                public void entriesDeleted(Collection<Jid> addresses) {
-                    // TODO Auto-generated method stub
-                    throw new UnsupportedOperationException("Unimplemented method 'entriesDeleted'");
-                }
-            });
-
-            return "loggedin";
-        } catch (GeneralSecurityException | IOException | XMPPException | SmackException | InterruptedException e) {
-            e.printStackTrace();
-            model.addAttribute("error", "Failed to connect: " + e.getMessage());
-            return "home";
-        }
-    }*/
-
-    
-
+   
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {

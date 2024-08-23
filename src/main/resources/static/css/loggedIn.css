@@ -17,7 +17,10 @@ body {
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    height: 80vh;
+    height: 650px;
+    max-height: 650px;
+    margin-top: 20px;
+    margin-bottom: 50px;
 }
 
 .header {
@@ -47,11 +50,6 @@ body {
     background-color: #ff3333;
 }
 
-.chat-container {
-    display: flex;
-    height: calc(100% - 50px); /* Altura menos la altura de la cabecera */
-}
-
 .sidebar {
     width: 25%;
     background-color: #f1f1f1;
@@ -60,6 +58,7 @@ body {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
+    max-height: 500px;
 }
 
 .search-bar {
@@ -103,7 +102,7 @@ body {
 .contact-list {
     list-style-type: none;
     padding: 0;
-    /*max-height: 400px;*/
+    max-height: 400px;
     overflow-y: auto;
 }
 
@@ -133,13 +132,19 @@ body {
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
+.chat-container {
+    display: flex;
+    max-height: 500px;
+}
+
 .chat {
     flex: 1;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow-y: auto; /* Habilita el desplazamiento vertical */
     display: flex;
     flex-direction: column;
+    max-height: 500px /* Ajusta esta altura según el diseño */
 }
 
 .message {
@@ -171,6 +176,7 @@ body {
     box-sizing: border-box; /* Asegura que el padding y borde se incluyan en el ancho total */
     background-color: #f1f1f1;
     border-top: 1px solid #ccc;
+    margin-bottom: 0px;
     width: 2000; /* Asegura que ocupe todo el ancho del contenedor padre */
 }
 

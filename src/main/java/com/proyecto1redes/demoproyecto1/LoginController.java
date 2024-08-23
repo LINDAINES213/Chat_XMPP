@@ -16,6 +16,8 @@ import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,7 +40,7 @@ public class LoginController {
     @Autowired
     private XMPPConnection xmppConnection;
 
-    private AbstractXMPPConnection connection;
+    AbstractXMPPConnection connection;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -66,16 +68,16 @@ public class LoginController {
         }
     }
 
-   
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
             connection = xmppConnection.connect(username, password);
             Roster roster = Roster.getInstanceFor(connection);
-            roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
+            roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);           
+            
 
             Set<RosterEntry> entries = roster.getEntries();
-            model.addAttribute("message", "Welcome " + connection.getUser());
+            model.addAttribute("message", username);
 
             // Inicializar el mapa de presencias
             Map<String, Map<String, String>> presencesMap = new HashMap<>();
@@ -92,7 +94,6 @@ public class LoginController {
 
             // Enviar la información de presencia por WebSocket
             messagingTemplate.convertAndSend("/topic/presenceUpdates", presencesMap);
-            System.out.println("Presence New" + presencesMap);
 
             model.addAttribute("presencesMap", presencesMap);
 
@@ -140,6 +141,32 @@ public class LoginController {
             e.printStackTrace();
             model.addAttribute("error", "Failed to connect: " + e.getMessage());
             return "home";
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @MessageMapping("/myPresence")
+    @SendTo("/topic/myPresenceUpdates")
+    public OwnPresenceMessage handleMyPresence(OwnPresenceMessage message) {
+        System.out.println("\nActualización de presencia recibida: " + message + "\n");
+        String status = message.getStatus();
+        System.out.println("Status: " + status);
+
+        // Actualizar la presencia en el servidor XMPP
+        try {
+            if (connection != null && connection.isAuthenticated()) {
+                Presence presence = new Presence(Presence.Type.available);
+                presence.setMode(Presence.Mode.valueOf(message.getMode()));
+                presence.setStatus(status);
+
+                connection.sendStanza(presence);
+            }
+            // Retornar el mensaje de presencia actualizado para la actualización de la UI en el cliente
+            return message;
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Manejar errores
+            return null;
         }
     }
 

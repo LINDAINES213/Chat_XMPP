@@ -15,6 +15,19 @@
         <script src="/js/loggedIn.js"></script>
         <div class="header">
             <h3 th:text="${message}"></h3>
+            <input placeholder="Status" class="status_input" name="text" type="text" value="">
+            <div class="input-container">
+                <!-- Selector de estado -->
+                <div class="status-dropdown">
+                    <select id="statusSelector">
+                        <option value="available">Available ✅</option>
+                        <option value="xa">Not Available 🔴</option>
+                        <option value="dnd">Busy 🟠</option>
+                        <option value="away">Away 🚶🏽</option>
+                        <option value="chat">Available to Chat 💬</option>
+                    </select>
+                </div>
+            </div>
             <form action="/logout" method="post" onsubmit="return confirm('Are you sure you want to logout?');">
                 <input class="logout" type="submit" value="Logout">
             </form>

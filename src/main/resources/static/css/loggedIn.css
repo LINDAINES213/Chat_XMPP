@@ -17,7 +17,7 @@ body {
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    height: 90vh;
+    height: 80vh;
 }
 
 .header {
@@ -27,6 +27,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
+    height: auto;
 }
 
 .header h1 {
@@ -208,3 +209,60 @@ button:hover {
     height: 25px;
     margin-left: 185px;
 }
+
+/* Estilo general para el contenedor del dropdown */
+.status-dropdown {
+    display: inline-block;
+    position: relative;
+    width: 200px; /* Ajusta el ancho según sea necesario */
+
+}
+
+/* Estilo para el elemento select */
+#statusSelector {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc; /* Borde gris claro */
+    border-radius: 4px; /* Bordes redondeados */
+    background-color: #fff; /* Fondo blanco */
+    font-size: 16px;
+    color: #333; /* Color del texto */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra sutil */
+    outline: none; /* Elimina el borde azul al enfocar */
+}
+
+/* Estilo para el borde del dropdown */
+#statusSelector:focus {
+    border-color: #007bff; /* Color del borde al enfocar */
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25); /* Sombra de enfoque */
+}
+
+/* Opcional: estilo para las opciones del select */
+#statusSelector option {
+    padding: 8px 12px;
+}
+
+option{
+    background-color: transparent;
+}
+
+select{
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    color: #333;
+    outline: none;
+}
+
+.status_input {
+    margin: 30px;
+    background: none;
+    border: none;
+    outline: none;
+    max-width: 190px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 9999px;
+    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+    color: #fff;
+  }

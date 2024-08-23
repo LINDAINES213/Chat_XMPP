@@ -118,7 +118,6 @@ function playNotificationSound() {
     }
 }
 
-// Este bloque de código se ejecuta cuando el WebSocket recibe un mensaje
 stompClient.connect({}, function (frame) {
     console.log('Connected: ' + frame);
     stompClient.subscribe('/topic/presenceUpdates', function (presenceMessage) {
@@ -126,6 +125,20 @@ stompClient.connect({}, function (frame) {
             var message = JSON.parse(presenceMessage.body);
             console.log("Received presence update:", message);
             updateContactList(message);
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    });
+
+    // Suscripción a las actualizaciones de la presencia del propio usuario
+    stompClient.subscribe('/topic/myPresenceUpdates', function (myPresenceMessage) {
+        try {
+            var message = JSON.parse(myPresenceMessage.body);
+            console.log("Received my presence update:", message);
+
+            // Lógica para actualizar la interfaz o manejar la presencia inicial
+            handleMyPresenceUpdate(message);
+
         } catch (error) {
             console.error('Error parsing message:', error);
         }
@@ -172,6 +185,12 @@ stompClient.connect({}, function (frame) {
 }, function (error) {
     console.error('STOMP error:', error);
 });
+
+// Función para manejar la presencia inicial del usuario
+function handleMyPresenceUpdate(presenceData) {
+    console.log('Mi presencia inicial:', presenceData);
+    // Aquí puedes realizar acciones adicionales como actualizar la UI o almacenar los datos
+}
 
 function addMessageToChat(sender, messageText) {
     const chat = document.getElementById('chat');
@@ -234,6 +253,51 @@ function addMessageToChat(sender, messageText) {
 
 // Este bloque de código se ejecuta cuando la página está cargada
 document.addEventListener('DOMContentLoaded', (event) => {
+
+    const statusSelector = document.getElementById('statusSelector');
+    const statusInput = document.querySelector('.status_input');
+
+    statusSelector.addEventListener('change', function() {
+        const selectedStatus = statusSelector.value; // Cambiar a .value para enviar el valor
+        console.log('Nuevo estado seleccionado:', selectedStatus);
+        
+        // Enviar la presencia al servidor
+        updatePresence(selectedStatus);
+    });
+
+    // Manejador de eventos para la tecla Enter en el campo de estado
+    if (statusInput) {
+        statusInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evitar el comportamiento predeterminado de la tecla Enter
+
+                const status = statusInput.value;
+                const selectedStatus = statusSelector.value;
+
+                // Enviar la presencia al servidor
+                updatePresence(selectedStatus, status);
+            }
+        });
+    }
+    
+    function updatePresence(mode, status) {
+        status = statusInput ? statusInput.value : '';
+        status = status;
+        // Enviar la presencia al servidor mediante STOMP
+        const presenceData = {
+            status: status,
+            mode: mode  // o el modo que quieras enviar
+        };
+    
+        stompClient.send('/app/myPresence', {}, JSON.stringify(presenceData));
+        stompClient.send('/topic/myPresenceUpdates', {}, JSON.stringify(presenceData));
+        
+        // Actualizar la UI local
+        const presenceDisplay = document.getElementById('presenceDisplay');
+        if (presenceDisplay) {
+            presenceDisplay.textContent = mode;
+        }
+    }
 
     if (Notification.permission !== 'granted') {
         Notification.requestPermission();

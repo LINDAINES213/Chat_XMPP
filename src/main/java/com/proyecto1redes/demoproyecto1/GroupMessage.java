@@ -1,5 +1,9 @@
 package com.proyecto1redes.demoproyecto1;
 
+/*
+ * Group Message Structure
+ */
+
 public class GroupMessage {
     private String sender;
     private String content;
@@ -9,7 +13,6 @@ public class GroupMessage {
         this.content = content;
     }
 
-    // Getters y setters
     public String getSender() {
         return sender;
     }

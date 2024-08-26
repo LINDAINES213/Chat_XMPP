@@ -1,5 +1,8 @@
 package com.proyecto1redes.demoproyecto1;
 
+/*
+ * Presence Message Structure
+ */
 
 public class PresenceMessage {
     private String user;

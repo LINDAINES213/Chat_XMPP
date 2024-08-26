@@ -1,5 +1,8 @@
 package com.proyecto1redes.demoproyecto1;
 
+/*
+ * Own Presence Message Structure
+ */
 
 public class OwnPresenceMessage {
     private String status;

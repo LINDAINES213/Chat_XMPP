@@ -4,23 +4,17 @@ var socket = new SockJS('http://localhost:2422/ws-presence');
 var stompClient = Stomp.over(socket);
 
 function selectUser(element) {
-    // Eliminar la clase 'selected' de todos los elementos de la lista
     const items = document.querySelectorAll('.contact-item');
     items.forEach(item => item.classList.remove('selected'));
 
-    // Añadir la clase 'selected' al elemento clicado
     element.classList.add('selected');
 
-    // Obtener el JID del usuario seleccionado
     selectedUser = element.getAttribute('data-jid');
 
-    // Configurar el campo oculto con el JID del destinatario
     document.getElementById('recipientJid').value = selectedUser;
 
-    // Cargar mensajes del usuario seleccionado
     loadMessages(selectedUser);
 
-    // Remover el ícono de notificación cuando se selecciona al usuario
     const notificationIcon = element.querySelector('.notification-icon');
     if (notificationIcon) {
         notificationIcon.remove();
@@ -28,10 +22,8 @@ function selectUser(element) {
 
     const isGroup = element.querySelector('.contact-status').textContent === 'Grupo';
     if (isGroup) {
-        // Lógica específica para grupos si es necesario
         console.log('Grupo seleccionado:', selectedUser);
     } else {
-        // Lógica para usuarios individuales
         console.log('Usuario seleccionado:', selectedUser);
     }
 }
@@ -52,7 +44,6 @@ function joinGroup(groupName) {
             console.log('Unido al grupo:', groupName);
             addGroupToList(groupName);
             subscribeToGroupMessages(groupName);
-            // Limpiar el campo de búsqueda después de unirse exitosamente
             document.getElementById('searchGroup').value = '';
         } else {
             console.error('Error al unirse al grupo:', data.message);
@@ -95,7 +86,6 @@ function loadUserGroups() {
     });
 }
 
-// Función para actualizar la lista de contactos
 function updateContactList(presenceData) {
     const contactList = document.getElementById('contactList');
     if (!contactList) {
@@ -103,14 +93,12 @@ function updateContactList(presenceData) {
         return;
     }
 
-    // Crear un objeto para almacenar contactos existentes y evitar duplicados
     const existingContacts = {};
     contactList.querySelectorAll('.contact-item').forEach(item => {
         const jid = item.getAttribute('data-jid');
         existingContacts[jid] = true;
     });
 
-    // Limpiar la lista existente
     contactList.innerHTML = ''; 
 
     for (const [user, details] of Object.entries(presenceData)) {
@@ -118,7 +106,6 @@ function updateContactList(presenceData) {
         listItem.classList.add('contact-item');
         listItem.setAttribute('data-jid', user);
 
-        // Agregar detalles del usuario y presencia
         listItem.innerHTML = `
             <span>${user}</span>
             <div class="contact-status">${details.mode || 'Desconocido'}</div>
@@ -134,11 +121,9 @@ function updateContactList(presenceData) {
         existingContacts[user] = false; // Marcamos como procesado
     }
 
-    // Opcional: Si deseas manejar contactos no presentes en la lista
     Object.keys(existingContacts).forEach(jid => {
         if (existingContacts[jid]) {
-            // El usuario estaba en la lista, pero no estaba en los datos de presencia actuales
-            // Puede ser necesario realizar alguna acción aquí, como eliminar al usuario
+            
         }
     });
 
@@ -148,19 +133,17 @@ function updateContactList(presenceData) {
 
 function loadMessages(sender) {
     const chat = document.getElementById('chat');
-    chat.innerHTML = '';  // Limpiar el chat antes de cargar mensajes
+    chat.innerHTML = '';  
 
     if (messages[sender]) {
         messages[sender].forEach(message => {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
 
-            // Aplicar la clase 'from-user' si el mensaje fue enviado por el usuario actual
             if (message.fromUser) {
                 messageElement.classList.add('from-user');
             }
 
-            // Si tienes más clases para agregar, asegúrate de que no estén vacías
             if (message.additionalClasses && message.additionalClasses.length > 0) {
                 const validClasses = message.additionalClasses.filter(cls => cls.trim() !== '');
                 messageElement.classList.add(...validClasses);
@@ -173,20 +156,18 @@ function loadMessages(sender) {
             chat.appendChild(messageElement);
         });
 
-        chat.scrollTop = chat.scrollHeight;  // Scroll al final del chat
+        chat.scrollTop = chat.scrollHeight; 
     }
 }
 
-// Función para mostrar el ícono de notificación
 function showNotificationIcon(sender) {
     const userElement = document.querySelector(`[data-jid="${sender}"]`);
     if (userElement) {
-        // Añadir una clase o ícono de notificación al usuario que envió el mensaje
         let notificationIcon = userElement.querySelector('.notification-icon');
         if (!notificationIcon) {
             // Crear el ícono si no existe
             notificationIcon = document.createElement('img');
-            notificationIcon.src = './images/notificacion.png';  // Ruta del ícono de notificación
+            notificationIcon.src = './images/notificacion.png';  
             notificationIcon.classList.add('notification-icon');
             notificationIcon.alt = 'Nuevo mensaje';
             userElement.appendChild(notificationIcon);
@@ -194,7 +175,6 @@ function showNotificationIcon(sender) {
     }
 }
 
-// Función para reproducir el sonido de notificación
 function playNotificationSound() {
     const notificationSound = document.getElementById('notificationSound');
     if (notificationSound) {
@@ -224,13 +204,11 @@ stompClient.connect({}, function (frame) {
         }
     });
 
-    // Suscripción a las actualizaciones de la presencia del propio usuario
     stompClient.subscribe('/topic/myPresenceUpdates', function (myPresenceMessage) {
         try {
             var message = JSON.parse(myPresenceMessage.body);
             console.log("Received my presence update:", message);
 
-            // Lógica para actualizar la interfaz o manejar la presencia inicial
             handleMyPresenceUpdate(message);
 
         } catch (error) {
@@ -238,7 +216,6 @@ stompClient.connect({}, function (frame) {
         }
     });
 
-    // Suscripción a las actualizaciones de mensajes
     stompClient.subscribe('/topic/messageUpdates', function (message) {
         try {
             const msgData = JSON.parse(message.body);
@@ -258,7 +235,6 @@ stompClient.connect({}, function (frame) {
                             fromUser: false
                         });
 
-                        // Mostrar un ícono de notificación si el usuario no está seleccionado
                         if (selectedUser !== sender) {
                             showNotificationIcon(sender);
                             playNotificationSound();
@@ -280,10 +256,8 @@ stompClient.connect({}, function (frame) {
     console.error('STOMP error:', error);
 });
 
-// Función para manejar la presencia inicial del usuario
 function handleMyPresenceUpdate(presenceData) {
     console.log('Mi presencia inicial:', presenceData);
-    // Aquí puedes realizar acciones adicionales como actualizar la UI o almacenar los datos
 }
 
 function addMessageToChat(sender, messageText) {
@@ -298,7 +272,7 @@ function addMessageToChat(sender, messageText) {
     message.innerHTML = `<p>${time}, ${date}</p><div class="message-content">${messageText}</div>`;
     
     chat.appendChild(message);
-    chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
+    chat.scrollTop = chat.scrollHeight;  
 
     // Guarda el mensaje en el objeto messages
     if (!messages[sender]) {
@@ -345,30 +319,26 @@ function addMessageToChat(sender, messageText) {
     console.log('Lista de contactos actualizada:', contactList.innerHTML);
 }*/
 
-// Este bloque de código se ejecuta cuando la página está cargada
 document.addEventListener('DOMContentLoaded', (event) => {
 
     const statusSelector = document.getElementById('statusSelector');
     const statusInput = document.querySelector('.status_input');
 
     statusSelector.addEventListener('change', function() {
-        const selectedStatus = statusSelector.value; // Cambiar a .value para enviar el valor
+        const selectedStatus = statusSelector.value; 
         console.log('Nuevo estado seleccionado:', selectedStatus);
         
-        // Enviar la presencia al servidor
         updatePresence(selectedStatus);
     });
 
-    // Manejador de eventos para la tecla Enter en el campo de estado
     if (statusInput) {
         statusInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Evitar el comportamiento predeterminado de la tecla Enter
+                event.preventDefault();
 
                 const status = statusInput.value;
                 const selectedStatus = statusSelector.value;
 
-                // Enviar la presencia al servidor
                 updatePresence(selectedStatus, status);
             }
         });
@@ -377,16 +347,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
     function updatePresence(mode, status) {
         status = statusInput ? statusInput.value : '';
         status = status;
-        // Enviar la presencia al servidor mediante STOMP
         const presenceData = {
             status: status,
-            mode: mode  // o el modo que quieras enviar
+            mode: mode 
         };
     
         stompClient.send('/app/myPresence', {}, JSON.stringify(presenceData));
         stompClient.send('/topic/myPresenceUpdates', {}, JSON.stringify(presenceData));
         
-        // Actualizar la UI local
         const presenceDisplay = document.getElementById('presenceDisplay');
         if (presenceDisplay) {
             presenceDisplay.textContent = mode;
@@ -402,15 +370,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     if (sendButton && messageInput) {
         sendButton.addEventListener('click', function(event) {
-            event.preventDefault(); // Evitar el comportamiento predeterminado del formulario
+            event.preventDefault();
 
             const messageText = messageInput.value;
 
             if (messageText.trim() !== '' && selectedUser) {
-                // Imprimir el mensaje en la consola
                 console.log('Enviando mensaje:', messageText);
 
-                // Enviar el mensaje al servidor
                 fetch('/send', {
                     method: 'POST',
                     headers: {
@@ -425,7 +391,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 .then(data => {
                     console.log('Respuesta del servidor:', data);
 
-                    // Agregar el mensaje al chat
                     const chat = document.getElementById('chat');
                     
                     const message = document.createElement('div');
@@ -437,9 +402,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     message.innerHTML = `<p>${time}, ${date}</p><div class="message-content">${messageText}</div>`;
                     
                     chat.appendChild(message);
-                    chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat
+                    chat.scrollTop = chat.scrollHeight; 
 
-                    // Guardar el mensaje en el objeto messages
                     if (!messages[selectedUser]) {
                         messages[selectedUser] = [];
                     }
@@ -450,7 +414,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         fromUser: true
                     });
 
-                    // Limpiar el campo de entrada
                     messageInput.value = '';
                 })
                 .catch(error => {

@@ -44,6 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/*
+ * Login Controller
+ */
+
 @Controller
 public class LoginController {
 
@@ -65,8 +69,9 @@ public class LoginController {
         return "signUp";
     }
 
+    // Create a new user account
     @PostMapping("/register")
-    public String register(@RequestParam String username, /*@RequestParam String name*/ @RequestParam String password, Model model) {
+    public String register(@RequestParam String username, @RequestParam String password, Model model) {
         try {
             xmppConnection.registerUser(username, password);
             model.addAttribute("message", "User registered successfully. Please log in.");
@@ -78,16 +83,15 @@ public class LoginController {
         }
     }
 
+    // Delete own user account on server
     @PostMapping("/deleteAccount")
     public String deleteAccount(Model model) {
         if (connection != null && connection.isConnected()) {
             try {
-                // Crear el administrador de cuentas
+                
                 AccountManager accountManager = AccountManager.getInstance(connection);
                 
-                // Verificar si la conexión está autenticada
                 if (connection.isAuthenticated()) {
-                    // Eliminar la cuenta del servidor
                     accountManager.deleteAccount();
                     model.addAttribute("message", "Cuenta eliminada exitosamente.");
                     System.out.println("Cuenta eliminada exitosamente.");
@@ -96,7 +100,6 @@ public class LoginController {
                     System.out.println("No estás autenticado.");
                 }
                 
-                // Desconectar la conexión
                 connection.disconnect();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -111,6 +114,7 @@ public class LoginController {
     }
 
 
+    // Log in to the server
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
@@ -122,18 +126,10 @@ public class LoginController {
             Set<RosterEntry> entries = roster.getEntries();
             model.addAttribute("username", username);
 
-            // Obtener todos los contactos
-
-            // Imprimir la lista de contactos en consola
-            System.out.println("Lista de usuarios registrados en el servidor:");
-            for (RosterEntry entry : entries) {
-                System.out.println("Usuario: " + entry.getUser() + " - Nombre: " + entry.getName());
-            }
-
-            // Inicializar el mapa de presencias
+            
             Map<String, Map<String, String>> presencesMap = new HashMap<>();
 
-            // Cargar la información de presencia de todos los contactos
+            // Contact's presence information
             for (RosterEntry entry : entries) {
                 BareJid entryBareJid = entry.getJid().asBareJid();
                 Presence presence = roster.getPresence(entryBareJid);
@@ -143,7 +139,7 @@ public class LoginController {
                 presencesMap.put(entryBareJid.toString(), presenceDetails);
             }
 
-            // Enviar la información de presencia por WebSocket
+            // Send presence information to web sockets
             messagingTemplate.convertAndSend("/topic/presenceUpdates", presencesMap);
 
             model.addAttribute("presencesMap", presencesMap);
@@ -172,6 +168,7 @@ public class LoginController {
                 public void entriesDeleted(Collection<Jid> addresses) {}
             });
 
+            // Incoming hat messages
             Map<String, List<String>> messagesMap = new HashMap<>();
             ChatManager chatManager = ChatManager.getInstanceFor(connection);
             chatManager.addIncomingListener(new IncomingChatMessageListener() {
@@ -195,6 +192,7 @@ public class LoginController {
         }
     }
     
+    // Join a group chat
     @SuppressWarnings("unchecked")
     @PostMapping("/joinGroup")
     public String joinGroup(@RequestParam String groupName, /*Model model*/ HttpSession session) {
@@ -202,19 +200,15 @@ public class LoginController {
             if (connection != null && connection.isAuthenticated()) {
                 Map<String, Object> response = new HashMap<>();
 
-                // Crear un MultiUserChatManager
                 MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
                 
-                // Crear la dirección del grupo
                 EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.lol");
                 
-                // Obtener la sala de chat
                 MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
                 
-                // Unirse a la sala de chat
                 muc.join(Resourcepart.from(connection.getUser().getLocalpart().toString()));
                 
-                // Configurar un listener para mensajes entrantes del grupo
+                // Listener for group messages
                 muc.addMessageListener(new MessageListener() {
                     @Override
                     public void processMessage(Message message) {
@@ -225,7 +219,6 @@ public class LoginController {
                             new GroupMessage(fromJid, messageBody));
                     }
                 });
-                // Guardar el grupo en la sesión del usuario
                 Set<String> userGroups = (Set<String>) session.getAttribute("userGroups");
                 if (userGroups == null) {
                     userGroups = new HashSet<>();
@@ -249,8 +242,10 @@ public class LoginController {
         return "loggedin";
     }
 
+    //Get the list of groups the user has joined
     @GetMapping("/getUserGroups")
     public ResponseEntity<Set<String>> getUserGroups(HttpSession session) {
+        @SuppressWarnings("unchecked")
         Set<String> userGroups = (Set<String>) session.getAttribute("userGroups");
         if (userGroups == null) {
             userGroups = new HashSet<>();
@@ -258,6 +253,7 @@ public class LoginController {
         return ResponseEntity.ok(userGroups);
     }
 
+    // Send a message to a group
     @PostMapping("/sendGroupMessage")
     public String sendGroupMessage(@RequestParam String groupName, @RequestParam String messageText, Model model) {
         try {
@@ -279,17 +275,18 @@ public class LoginController {
         return "loggedin";
     }
 
+    // Send a message to a group or a user
     @PostMapping("/sendMessage")
     public String sendMessageToGroup(@RequestParam String groupName, @RequestParam String message, Model model) throws XMPPException, XmppStringprepException {
         try {
             if (connection != null && connection.isAuthenticated()) {
-                // Crear un MultiUserChatManager
+                // Create a MultiUserChatManager
                 MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
 
-                // Crear la dirección del grupo
+                // Chat room address
                 EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.lol");
 
-                // Obtener la sala de chat
+                // Obtain the chat room
                 MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
 
                 // Verificar si ya estás en el grupo
@@ -313,6 +310,7 @@ public class LoginController {
         return "loggedin";
     }
 
+    // Change presence status
     @SuppressWarnings("deprecation")
     @MessageMapping("/myPresence")
     @SendTo("/topic/myPresenceUpdates")
@@ -321,7 +319,7 @@ public class LoginController {
         String status = message.getStatus();
         System.out.println("Status: " + status);
 
-        // Actualizar la presencia en el servidor XMPP
+        // Update presence status in the server
         try {
             if (connection != null && connection.isAuthenticated()) {
                 Presence presence = new Presence(Presence.Type.available);
@@ -330,18 +328,15 @@ public class LoginController {
 
                 connection.sendStanza(presence);
             }
-            // Retornar el mensaje de presencia actualizado para la actualización de la UI en el cliente
+            
             return message;
         } catch (Exception e) {
             e.printStackTrace();
-            // Manejar errores
             return null;
         }
     }
 
-
-
-
+    // Check connection status
     private void checkConnectionStatus() {
         if (connection == null) {
             System.out.println("Connection is null.");
@@ -352,6 +347,7 @@ public class LoginController {
         }
     }
 
+    // Get presence status
     private String getPresenceStatus(Presence presence) {
         switch (presence.getType()) {
             case unavailable:
@@ -378,7 +374,7 @@ public class LoginController {
     }
 
 
-
+    // Send a message to a user
     @PostMapping("/send")
     public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, Model model) {
         
@@ -397,6 +393,7 @@ public class LoginController {
         return "loggedin";
     }
 
+    // Send a message to a user
     private void sendMessage(String recipientJid, String messageContent) {
         try {
             Jid recipient = JidCreate.bareFrom(recipientJid);
@@ -411,6 +408,7 @@ public class LoginController {
         }
     }
 
+    // Add a user to the roster
     @SuppressWarnings("deprecation")
     @PostMapping("/search")
     public String search(@RequestParam String searchUsername, Model model) {
@@ -419,15 +417,13 @@ public class LoginController {
                 Roster roster = Roster.getInstanceFor(connection);
                 BareJid bareJid = JidCreate.bareFrom(searchUsername + "@alumchat.lol");
 
-                // Añadir al contacto y solicitar la suscripción
                 roster.createItemAndRequestSubscription(bareJid, searchUsername, new String[]{});
 
-                // Enviar actualización de presencia a todos los contactos
+                // Send presence to the user
                 Presence presence = new Presence(Presence.Type.available);
-                presence.setStatus("Disponible para chatear");  // Puedes personalizar este mensaje
+                presence.setStatus("Available to chat 💬");  
                 connection.sendStanza(presence);
 
-                // Actualizar la lista de contactos en la vista
                 Set<RosterEntry> entries = roster.getEntries();
                 model.addAttribute("message", "Usuario " + searchUsername + " añadido a contactos.");
                 model.addAttribute("userList", entries);
@@ -439,8 +435,7 @@ public class LoginController {
         return "loggedin";
     }
 
-
-
+    // Log out from the server
     @PostMapping("/logout")
     public String logout(Model model) {
         if (connection != null && connection.isConnected()) {
@@ -459,6 +454,4 @@ public class LoginController {
         model.addAttribute("message", "Sesión cerrada exitosamente.");
         return "redirect:/";
     }
-
-
 }

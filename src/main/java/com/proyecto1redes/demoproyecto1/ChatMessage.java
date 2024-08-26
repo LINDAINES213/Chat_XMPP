@@ -1,5 +1,8 @@
 package com.proyecto1redes.demoproyecto1;
 
+/*
+ * Chat Message Structure
+ */
 
 public class ChatMessage {
     private String sender;

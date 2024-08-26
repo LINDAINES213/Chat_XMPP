@@ -10,15 +10,17 @@ import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jxmpp.jid.parts.Localpart;
 import org.springframework.stereotype.Service;
 
-//import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.List;
+
+/*
+ * XMPP Connection
+ */
 
 @Service
 public class XMPPConnection {
 
-
+    // Connect to XMPP server
     public AbstractXMPPConnection connect(String username, String password) throws GeneralSecurityException, IOException, XMPPException, SmackException, InterruptedException {
         //SSLContext sslContext = SSLContext.getInstance("TLS");
 
@@ -39,6 +41,7 @@ public class XMPPConnection {
         return connection;
     }
 
+    // Register a new user on the XMPP server
     public void registerUser(String username, String password) throws XMPPException, SmackException, IOException, InterruptedException {
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                 .setXmppDomain("alumchat.lol")

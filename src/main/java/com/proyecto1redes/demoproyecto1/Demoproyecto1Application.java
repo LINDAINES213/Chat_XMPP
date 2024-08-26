@@ -5,6 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.stereotype.Controller;
 
+/*
+ * Main class
+ */
+
 @Controller
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class Demoproyecto1Application {

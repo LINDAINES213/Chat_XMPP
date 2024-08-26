@@ -52,8 +52,8 @@
                     </form>
                 </div>
                 <div class="search-bar">
-                    <form action="/searchGroup" method="post">
-                        <input type="text" id="searchGroup" name="searchGroup" required placeholder="Search groups...">
+                    <form action="/joinGroup" method="post">
+                        <input type="text" id="searchGroup" name="groupName" required placeholder="Join groups...">
                         <button type="submit" class="search-button">
                             <span class="plus-icon">+</span>
                         </button>
@@ -76,7 +76,7 @@
             </div>-->
         </div>
         <div class="input-container">
-            <form action="/send" method="post">
+            <form action="/sendGroupMessage" method="post">
                 <input type="hidden" name="recipientJid" id="recipientJid" value="">
                 <input class="chat_input" type="text" id="messageInput" name="messageText" placeholder="Enter text here...">
                 <button type="submit" id="sendButton">Send</button>

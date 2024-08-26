@@ -27,4 +27,13 @@ public class WebSocketController {
             HtmlUtils.htmlEscape(message.getContent())
         );
     }
+
+    @MessageMapping("/groupMessage")
+    @SendTo("/topic/groupMessages")
+    public GroupMessage handleGroupMessage(GroupMessage message) {
+        return new GroupMessage(
+            HtmlUtils.htmlEscape(message.getSender()), 
+            HtmlUtils.htmlEscape(message.getContent())
+        );
+    }
 }

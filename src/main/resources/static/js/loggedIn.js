@@ -25,8 +25,75 @@ function selectUser(element) {
     if (notificationIcon) {
         notificationIcon.remove();
     }
+
+    const isGroup = element.querySelector('.contact-status').textContent === 'Grupo';
+    if (isGroup) {
+        // Lógica específica para grupos si es necesario
+        console.log('Grupo seleccionado:', selectedUser);
+    } else {
+        // Lógica para usuarios individuales
+        console.log('Usuario seleccionado:', selectedUser);
+    }
 }
 
+function joinGroup(groupName) {
+    fetch('/joinGroup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'groupName': groupName
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Unido al grupo:', groupName);
+            addGroupToList(groupName);
+            subscribeToGroupMessages(groupName);
+            // Limpiar el campo de búsqueda después de unirse exitosamente
+            document.getElementById('searchGroup').value = '';
+        } else {
+            console.error('Error al unirse al grupo:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error al unirse al grupo:', error);
+    });
+}
+
+function addGroupToList(groupName) {
+    const contactList = document.getElementById('contactList');
+    // Verificar si el grupo ya está en la lista
+    if (!document.querySelector(`[data-jid="${groupName}"]`)) {
+        const listItem = document.createElement('li');
+        listItem.classList.add('contact-item');
+        listItem.setAttribute('data-jid', groupName);
+        listItem.innerHTML = `
+            <span>${groupName}</span>
+            <div class="contact-status">Grupo</div>
+        `;
+        listItem.onclick = function() {
+            selectUser(this);
+        };
+        contactList.appendChild(listItem);
+    }
+}
+
+function loadUserGroups() {
+    fetch('/getUserGroups')
+    .then(response => response.json())
+    .then(groups => {
+        groups.forEach(group => {
+            addGroupToList(group);
+            subscribeToGroupMessages(group);
+        });
+    })
+    .catch(error => {
+        console.error('Error al cargar los grupos del usuario:', error);
+    });
+}
 
 // Función para actualizar la lista de contactos
 function updateContactList(presenceData) {
@@ -137,8 +204,16 @@ function playNotificationSound() {
     }
 }
 
+function subscribeToGroupMessages(groupName) {
+    stompClient.subscribe(`/topic/groupMessages/${groupName}`, function(message) {
+        const groupMessage = JSON.parse(message.body);
+        addMessageToChat(groupName, `${groupMessage.sender}: ${groupMessage.content}`);
+    });
+}
+
 stompClient.connect({}, function (frame) {
     console.log('Connected: ' + frame);
+    loadUserGroups();
     stompClient.subscribe('/topic/presenceUpdates', function (presenceMessage) {
         try {
             var message = JSON.parse(presenceMessage.body);
@@ -187,7 +262,6 @@ stompClient.connect({}, function (frame) {
                         if (selectedUser !== sender) {
                             showNotificationIcon(sender);
                             playNotificationSound();
-                            addNotification(sender, messageText);
                         }
                     }
                 });

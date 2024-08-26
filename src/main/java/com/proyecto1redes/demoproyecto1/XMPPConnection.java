@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 //import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 @Service
 public class XMPPConnection {
@@ -53,5 +54,5 @@ public class XMPPConnection {
         accountManager.createAccount(Localpart.from(username), password);
 
         connection.disconnect();
-    }    
+    }
 }

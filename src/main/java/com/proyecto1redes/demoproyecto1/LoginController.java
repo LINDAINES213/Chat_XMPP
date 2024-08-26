@@ -1,6 +1,7 @@
 package com.proyecto1redes.demoproyecto1;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat2.Chat;
@@ -12,11 +13,16 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.parts.Resourcepart;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,11 +32,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -184,6 +193,124 @@ public class LoginController {
             model.addAttribute("error", "Failed to connect: " + e.getMessage());
             return "home";
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @PostMapping("/joinGroup")
+    public String joinGroup(@RequestParam String groupName, /*Model model*/ HttpSession session) {
+        try {
+            if (connection != null && connection.isAuthenticated()) {
+                Map<String, Object> response = new HashMap<>();
+
+                // Crear un MultiUserChatManager
+                MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+                
+                // Crear la dirección del grupo
+                EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.lol");
+                
+                // Obtener la sala de chat
+                MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+                
+                // Unirse a la sala de chat
+                muc.join(Resourcepart.from(connection.getUser().getLocalpart().toString()));
+                
+                // Configurar un listener para mensajes entrantes del grupo
+                muc.addMessageListener(new MessageListener() {
+                    @Override
+                    public void processMessage(Message message) {
+                        String fromJid = message.getFrom().toString();
+                        String messageBody = message.getBody();
+                        // Aquí puedes manejar el mensaje recibido, por ejemplo, enviarlo a través de WebSocket
+                        messagingTemplate.convertAndSend("/topic/groupMessages/" + groupName, 
+                            new GroupMessage(fromJid, messageBody));
+                    }
+                });
+                // Guardar el grupo en la sesión del usuario
+                Set<String> userGroups = (Set<String>) session.getAttribute("userGroups");
+                if (userGroups == null) {
+                    userGroups = new HashSet<>();
+                }
+                userGroups.add(groupName);
+                session.setAttribute("userGroups", userGroups);
+                response.put("success", true);
+                response.put("message", "Te has unido al grupo: " + groupName);
+                System.out.println("Te has unido al grupo: " + groupName);
+                //model.addAttribute("message", "Te has unido al grupo: " + groupName);
+                
+            } else {
+                //model.addAttribute("error", "No estás conectado al servidor XMPP.");
+            }
+        } catch (XMPPException.XMPPErrorException | SmackException | InterruptedException | XmppStringprepException e) {
+            
+            e.printStackTrace();
+            //model.addAttribute("error", "Error al unirse al grupo: " + e.getMessage());
+            System.out.println("Error al unirse al grupo: " + e.getMessage());
+        }
+        return "loggedin";
+    }
+
+    @GetMapping("/getUserGroups")
+    public ResponseEntity<Set<String>> getUserGroups(HttpSession session) {
+        Set<String> userGroups = (Set<String>) session.getAttribute("userGroups");
+        if (userGroups == null) {
+            userGroups = new HashSet<>();
+        }
+        return ResponseEntity.ok(userGroups);
+    }
+
+    @PostMapping("/sendGroupMessage")
+    public String sendGroupMessage(@RequestParam String groupName, @RequestParam String messageText, Model model) {
+        try {
+            if (connection != null && connection.isAuthenticated()) {
+                MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+                EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.lol");
+                MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+                
+                muc.sendMessage(messageText);
+                
+                model.addAttribute("message", "Mensaje enviado al grupo: " + groupName);
+            } else {
+                model.addAttribute("error", "No estás conectado al servidor XMPP.");
+            }
+        } catch (SmackException.NotConnectedException | InterruptedException | XmppStringprepException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error al enviar mensaje al grupo: " + e.getMessage());
+        }
+        return "loggedin";
+    }
+
+    @PostMapping("/sendMessage")
+    public String sendMessageToGroup(@RequestParam String groupName, @RequestParam String message, Model model) throws XMPPException, XmppStringprepException {
+        try {
+            if (connection != null && connection.isAuthenticated()) {
+                // Crear un MultiUserChatManager
+                MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+
+                // Crear la dirección del grupo
+                EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.lol");
+
+                // Obtener la sala de chat
+                MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+
+                // Verificar si ya estás en el grupo
+                if (muc.isJoined()) {
+                    // Enviar el mensaje al grupo
+                    muc.sendMessage(message);
+                    
+                    model.addAttribute("message", "Mensaje enviado al grupo: " + groupName);
+                    System.out.println("Mensaje enviado al grupo: " + groupName);
+                } else {
+                    model.addAttribute("error", "No estás en el grupo: " + groupName);
+                }
+            } else {
+                model.addAttribute("error", "No estás conectado al servidor XMPP.");
+            }
+        } catch (SmackException | InterruptedException e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error al enviar el mensaje: " + e.getMessage());
+            System.out.println("Error al enviar el mensaje: " + e.getMessage());
+        }
+        return "loggedin";
     }
 
     @SuppressWarnings("deprecation")

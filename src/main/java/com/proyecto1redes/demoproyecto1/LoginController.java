@@ -12,16 +12,22 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
+import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
+import org.jivesoftware.smackx.httpfileupload.HttpFileUploadManager;
+import org.jivesoftware.smackx.httpfileupload.UploadService;
 import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.EntityFullJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -30,11 +36,25 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.HtmlUtils;
+import java.util.Base64;
+
 
 import jakarta.servlet.http.HttpSession;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +69,7 @@ import java.util.Set;
  */
 
 @Controller
-public class LoginController {
+public class LoginController<UploadRequest> {
 
     @Autowired
     private XMPPConnection xmppConnection;
@@ -113,19 +133,18 @@ public class LoginController {
         return "redirect:/";
     }
 
-
+    
+    
     // Log in to the server
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
             connection = xmppConnection.connect(username, password);
             Roster roster = Roster.getInstanceFor(connection);
-            roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);           
-            
+            roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);          
 
             Set<RosterEntry> entries = roster.getEntries();
             model.addAttribute("username", username);
-
             
             Map<String, Map<String, String>> presencesMap = new HashMap<>();
 
@@ -376,10 +395,10 @@ public class LoginController {
 
     // Send a message to a user
     @PostMapping("/send")
-    public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, Model model) {
+    public String sendMessage(@RequestParam String recipientJid, @RequestParam String messageText, MultipartFile messageContent, Model model) {
         
         try {
-            if (connection != null && connection.isAuthenticated()) {
+            if (connection != null) {
                 sendMessage(recipientJid, messageText);
                 model.addAttribute("message", "Message sent to " + recipientJid);
                 System.out.println("Message sent to " + recipientJid);
@@ -392,6 +411,8 @@ public class LoginController {
         }
         return "loggedin";
     }
+
+    
 
     // Send a message to a user
     private void sendMessage(String recipientJid, String messageContent) {
@@ -408,6 +429,21 @@ public class LoginController {
         }
     }
 
+    @MessageMapping("/sendFile")
+    @SendTo("/topic/fileUpdates")
+    public FileMessage handFileMessage(FileMessage fileMessage) {
+        System.out.println("File message received: " + fileMessage);
+        String recipientJid = fileMessage.getRecipient();
+        String fileName = fileMessage.getFileName();
+        String fileData = fileMessage.getFileData(); // Base64 encoded data
+
+        System.out.println("Recipient: " + recipientJid);
+        System.out.println("File name: " + fileName);
+        System.out.println("File data: " + fileData);
+
+        return fileMessage;
+    }
+    
     // Add a user to the roster
     @SuppressWarnings("deprecation")
     @PostMapping("/search")

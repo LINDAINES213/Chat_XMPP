@@ -1,5 +1,10 @@
 package com.proyecto1redes.demoproyecto1;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -39,4 +44,18 @@ public class WebSocketController {
             HtmlUtils.htmlEscape(message.getContent())
         );
     }
+
+    /*@MessageMapping("/sendFile")
+    @SendTo("/topic/fileUpdates")
+    public FileMessage handleFile(FileMessage fileMessage) {
+        // Decodificar Base64
+        //byte[] fileBytes = Base64.getDecoder().decode(fileMessage.getFileData().split(",")[1]);
+
+        return new FileMessage(
+            HtmlUtils.htmlEscape(fileMessage.getRecipient()),
+            HtmlUtils.htmlEscape(fileMessage.getFileName()),
+            HtmlUtils.htmlEscape(fileMessage.getFileData())
+        );
+    }*/
+
 }

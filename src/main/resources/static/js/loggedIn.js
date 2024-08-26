@@ -216,6 +216,16 @@ stompClient.connect({}, function (frame) {
         }
     });
 
+    stompClient.subscribe('/topic/fileUpdates', function (fileMessage) {
+        try {
+            var message = JSON.parse(fileMessage.body);
+            console.log("Received file update:", message);
+            addMessageToChat(message.recipient, `Archivo recibido: ${message.fileName}`);
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    });
+
     stompClient.subscribe('/topic/messageUpdates', function (message) {
         try {
             const msgData = JSON.parse(message.body);
@@ -318,6 +328,50 @@ function addMessageToChat(sender, messageText) {
 
     console.log('Lista de contactos actualizada:', contactList.innerHTML);
 }*/
+
+function convertToBase64(file, callback) {
+    console.log('Archivo recibido para conversión:', file); // Agrega este log para depuración
+    if (!(file instanceof Blob)) {
+        console.error('El archivo no es de tipo Blob:', file);
+        return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        console.log('Archivo convertido a Base64:', reader.result); // Agrega este log para depuración
+        callback(reader.result);
+    };
+    reader.readAsDataURL(file);
+}
+
+function sendFile(file) {
+    console.log('Enviando archivo:', file); // Agrega este log para depuración
+    if (!file || !(file instanceof Blob)) {
+        console.error('Archivo no válido:', file);
+        return;
+    }
+    convertToBase64(file, (base64File) => {
+        const fileData = {
+            recipient: selectedUser,  // Asegúrate de que `selectedUser` esté definido correctamente
+            fileName: file.name,
+            fileData: base64File
+        };
+        console.log('Datos del archivo listos para enviar:', fileData); // Agrega este log para depuración
+        stompClient.send('/app/sendFile', {}, JSON.stringify(fileData));
+        stompClient.send('/topic/fileUpdates', {}, JSON.stringify(fileData));
+    });
+}
+
+// Función para manejar el archivo seleccionado
+function sendSelectedFile() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        console.log('Archivo seleccionado:', file); // Agrega este log para depuración
+        sendFile(file);
+    } else {
+        console.error('No se ha seleccionado ningún archivo.');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', (event) => {
 

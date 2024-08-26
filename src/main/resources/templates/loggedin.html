@@ -76,6 +76,13 @@
             </div>-->
         </div>
         <div class="input-container">
+            <!-- Input oculto para seleccionar el archivo -->
+            <input type="file" id="fileInput" style="display: none;">
+            <!-- Botón para abrir el selector de archivos -->
+            <button type="button" onclick="document.getElementById('fileInput').click();">Seleccionar Archivo</button>
+            <!-- Botón para enviar el archivo -->
+            <button type="button" onclick="sendSelectedFile();">Enviar Archivo</button>
+
             <form action="/sendGroupMessage" method="post">
                 <input type="hidden" name="recipientJid" id="recipientJid" value="">
                 <input class="chat_input" type="text" id="messageInput" name="messageText" placeholder="Enter text here...">

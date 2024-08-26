@@ -27,6 +27,7 @@ function selectUser(element) {
     }
 }
 
+
 // Función para actualizar la lista de contactos
 function updateContactList(presenceData) {
     const contactList = document.getElementById('contactList');
@@ -35,7 +36,15 @@ function updateContactList(presenceData) {
         return;
     }
 
-    contactList.innerHTML = ''; // Limpiar la lista existente
+    // Crear un objeto para almacenar contactos existentes y evitar duplicados
+    const existingContacts = {};
+    contactList.querySelectorAll('.contact-item').forEach(item => {
+        const jid = item.getAttribute('data-jid');
+        existingContacts[jid] = true;
+    });
+
+    // Limpiar la lista existente
+    contactList.innerHTML = ''; 
 
     for (const [user, details] of Object.entries(presenceData)) {
         const listItem = document.createElement('li');
@@ -55,10 +64,20 @@ function updateContactList(presenceData) {
         };
 
         contactList.appendChild(listItem);
+        existingContacts[user] = false; // Marcamos como procesado
     }
+
+    // Opcional: Si deseas manejar contactos no presentes en la lista
+    Object.keys(existingContacts).forEach(jid => {
+        if (existingContacts[jid]) {
+            // El usuario estaba en la lista, pero no estaba en los datos de presencia actuales
+            // Puede ser necesario realizar alguna acción aquí, como eliminar al usuario
+        }
+    });
 
     console.log('Lista de contactos actualizada:', contactList.innerHTML);
 }
+
 
 function loadMessages(sender) {
     const chat = document.getElementById('chat');
@@ -168,6 +187,7 @@ stompClient.connect({}, function (frame) {
                         if (selectedUser !== sender) {
                             showNotificationIcon(sender);
                             playNotificationSound();
+                            addNotification(sender, messageText);
                         }
                     }
                 });

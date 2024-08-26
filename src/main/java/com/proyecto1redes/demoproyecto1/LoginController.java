@@ -11,6 +11,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
@@ -68,6 +69,39 @@ public class LoginController {
         }
     }
 
+    @PostMapping("/deleteAccount")
+    public String deleteAccount(Model model) {
+        if (connection != null && connection.isConnected()) {
+            try {
+                // Crear el administrador de cuentas
+                AccountManager accountManager = AccountManager.getInstance(connection);
+                
+                // Verificar si la conexión está autenticada
+                if (connection.isAuthenticated()) {
+                    // Eliminar la cuenta del servidor
+                    accountManager.deleteAccount();
+                    model.addAttribute("message", "Cuenta eliminada exitosamente.");
+                    System.out.println("Cuenta eliminada exitosamente.");
+                } else {
+                    model.addAttribute("error", "No estás autenticado.");
+                    System.out.println("No estás autenticado.");
+                }
+                
+                // Desconectar la conexión
+                connection.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+                model.addAttribute("error", "Error al eliminar la cuenta: " + e.getMessage());
+                return "loggedin";
+            }
+        } else {
+            model.addAttribute("error", "No hay conexión activa.");
+        }
+
+        return "redirect:/";
+    }
+
+
     @PostMapping("/login")
     public String login(@RequestParam String username, @RequestParam String password, Model model) {
         try {
@@ -77,7 +111,15 @@ public class LoginController {
             
 
             Set<RosterEntry> entries = roster.getEntries();
-            model.addAttribute("message", username);
+            model.addAttribute("username", username);
+
+            // Obtener todos los contactos
+
+            // Imprimir la lista de contactos en consola
+            System.out.println("Lista de usuarios registrados en el servidor:");
+            for (RosterEntry entry : entries) {
+                System.out.println("Usuario: " + entry.getUser() + " - Nombre: " + entry.getName());
+            }
 
             // Inicializar el mapa de presencias
             Map<String, Map<String, String>> presencesMap = new HashMap<>();
@@ -242,23 +284,34 @@ public class LoginController {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @PostMapping("/search")
     public String search(@RequestParam String searchUsername, Model model) {
         try {
             if (connection != null && connection.isAuthenticated()) {
                 Roster roster = Roster.getInstanceFor(connection);
                 BareJid bareJid = JidCreate.bareFrom(searchUsername + "@alumchat.lol");
+
+                // Añadir al contacto y solicitar la suscripción
                 roster.createItemAndRequestSubscription(bareJid, searchUsername, new String[]{});
+
+                // Enviar actualización de presencia a todos los contactos
+                Presence presence = new Presence(Presence.Type.available);
+                presence.setStatus("Disponible para chatear");  // Puedes personalizar este mensaje
+                connection.sendStanza(presence);
+
+                // Actualizar la lista de contactos en la vista
                 Set<RosterEntry> entries = roster.getEntries();
-                model.addAttribute("message", "User " + searchUsername + " added to contacts.");
+                model.addAttribute("message", "Usuario " + searchUsername + " añadido a contactos.");
                 model.addAttribute("userList", entries);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("error", "Failed to add user: " + e.getMessage());
+            model.addAttribute("error", "Error al añadir usuario: " + e.getMessage());
         }
         return "loggedin";
     }
+
 
 
     @PostMapping("/logout")

@@ -53,7 +53,5 @@ public class XMPPConnection {
         accountManager.createAccount(Localpart.from(username), password);
 
         connection.disconnect();
-    }
-
-    
+    }    
 }

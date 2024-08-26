@@ -8,16 +8,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <audio id="notificationSound" src="./audio/notificacion.mp3" preload="auto"></audio>
-
 </head>
 <body>
     <div class="container">
         <script src="/js/loggedIn.js"></script>
         <div class="header">
-            <h3 th:text="${message}"></h3>
+            <h3 th:text="${username}"></h3>
             <input placeholder="Status" class="status_input" name="text" type="text" value="">
             <div>
-                <!-- Selector de estado -->
                 <div class="status-dropdown">
                     <select id="statusSelector">
                         <option value="available">Available ✅</option>
@@ -29,7 +27,18 @@
                 </div>
             </div>
             <form action="/logout" method="post" onsubmit="return confirm('Are you sure you want to logout?');">
-                <input class="logout" type="submit" value="Logout">
+                <!--<input class="logout" type="submit" value="Logout">-->
+                <button class="Btn">
+                    <div class="sign"><svg viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path></svg></div>
+                    <div class="text">Logout</div>
+                </button>
+                  
+            </form>
+            <form action="/deleteAccount" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar tu cuenta?');">
+                <!--<button type="submit" class="delete-account">Eliminar Cuenta</button>-->
+                <button class="button" type="submit">
+                    <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+                  </button>
             </form>
         </div>
         <div class="chat-container">
@@ -42,23 +51,29 @@
                         </button>
                     </form>
                 </div>
+                <div class="search-bar">
+                    <form action="/searchGroup" method="post">
+                        <input type="text" id="searchGroup" name="searchGroup" required placeholder="Search groups...">
+                        <button type="submit" class="search-button">
+                            <span class="plus-icon">+</span>
+                        </button>
+                    </form>
+                </div>
                 <ul class="contact-list" id="contactList">
-                    <!-- Iterar sobre la lista de usuarios y mostrarlos -->
                     <li class="contact-item" th:each="user, iter : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
                         <span th:text="${user.jid}"></span>
                     </li>
-                     
-                    <!--<li class="contact-item" th:each="user, iter : ${userList}" onclick="selectUser(this)" th:data-jid="${user.jid}">
-                        <span th:text="${user.jid}"></span>
-                        <span class="presence-status" id="presence-${user.jid}">Offline</span>
-                        <span style="font-size: 13px; color: rgb(86, 84, 84);" th:text="${presencesMap[user.jid.toString()].mode}"></span>
-                        <span style="font-size: 12px; color: rgb(86, 84, 84)" th:text="${presencesMap[user.jid.toString()].status}"></span>
-                    </li>-->
                 </ul>
             </div>
             <div class="chat" id="chat">
                 <!-- Mensajes cargados dinámicamente -->
             </div>
+            <!--<div class="notification-sidebar" style="width: 1000px;">
+                <h3>Notifications</h3>
+                <ul class="notification-list" id="notificationList">
+                     Notifications will be loaded dynamically 
+                </ul>
+            </div>-->
         </div>
         <div class="input-container">
             <form action="/send" method="post">

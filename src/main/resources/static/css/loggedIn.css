@@ -10,8 +10,8 @@ body {
 }
 
 .container {
-    width: 80%;
-    max-width: 1000px;
+    width: 90%;
+    max-width: 1200px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     border-radius: 5px;
@@ -50,8 +50,8 @@ body {
     background-color: #ff3333;
 }
 
-.sidebar {
-    width: 25%;
+.sidebar, .notification-sidebar {
+    width: 20%;
     background-color: #f1f1f1;
     padding: 10px;
     box-sizing: border-box;
@@ -99,14 +99,14 @@ body {
     font-size: 20px;
 }
 
-.contact-list {
+.contact-list, .notification-list {
     list-style-type: none;
     padding: 0;
     max-height: 400px;
     overflow-y: auto;
 }
 
-.contact-item {
+.contact-item, .notification-item {
     display: flex;
     flex-direction: column;
     padding: 10px;
@@ -115,15 +115,18 @@ body {
     height: auto;
     margin-bottom: 10px;
 }
-.contact-item span {
+
+.contact-item span, .notification-item span {
     font-size: 18px;
     font-weight: bold;
 }
+
 .presence-info {
     font-size: 0.9em;
     color: #666;
     margin-top: 5px;
 }
+
 .presence-mode {
     font-weight: bold;
 }
@@ -141,10 +144,10 @@ body {
     flex: 1;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto; /* Habilita el desplazamiento vertical */
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    max-height: 500px /* Ajusta esta altura según el diseño */
+    max-height: 500px;
 }
 
 .message {
@@ -173,19 +176,19 @@ body {
     display: flex;
     align-items: center;
     padding: 10px;
-    box-sizing: border-box; /* Asegura que el padding y borde se incluyan en el ancho total */
+    box-sizing: border-box;
     background-color: #f1f1f1;
     border-top: 1px solid #ccc;
     margin-bottom: 0px;
-    width: 2000; /* Asegura que ocupe todo el ancho del contenedor padre */
+    width: 100%;
 }
 
 input[type="text"] {
-    flex: 1; /* Permite que el input ocupe todo el espacio disponible */
+    flex: 1;
     padding: 10px;
-    box-sizing: border-box; /* Asegura que el padding se incluya en el ancho total */
+    box-sizing: border-box;
     border: 1px solid #ccc;
-    border-radius: 5px 0 0 5px; /* Radio de borde ajustado para la esquina izquierda */
+    border-radius: 5px 0 0 5px;
     font-size: 16px;
     outline: none;
     width: 890px;
@@ -197,9 +200,9 @@ button {
     background-color: #333;
     color: white;
     border: none;
-    border-radius: 0 5px 5px 0; /* Radio de borde ajustado para la esquina derecha */
+    border-radius: 0 5px 5px 0;
     cursor: pointer;
-    flex-shrink: 0; /* Evita que el botón se reduzca */
+    flex-shrink: 0;
 }
 
 button:hover {
@@ -213,46 +216,41 @@ button:hover {
 .notification-icon {
     width: 25px;
     height: 25px;
-    margin-left: 185px;
+    margin-left: 150px;
 }
 
-/* Estilo general para el contenedor del dropdown */
 .status-dropdown {
     display: inline-block;
     position: relative;
-    width: 200px; /* Ajusta el ancho según sea necesario */
-
+    width: 200px;
 }
 
-/* Estilo para el elemento select */
 #statusSelector {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid #ccc; /* Borde gris claro */
-    border-radius: 4px; /* Bordes redondeados */
-    background-color: #fff; /* Fondo blanco */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
     font-size: 16px;
-    color: #333; /* Color del texto */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra sutil */
-    outline: none; /* Elimina el borde azul al enfocar */
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    outline: none;
 }
 
-/* Estilo para el borde del dropdown */
 #statusSelector:focus {
-    border-color: #007bff; /* Color del borde al enfocar */
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25); /* Sombra de enfoque */
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
 }
 
-/* Opcional: estilo para las opciones del select */
 #statusSelector option {
     padding: 8px 12px;
 }
 
-option{
+option {
     background-color: transparent;
 }
 
-select{
+select {
     background-color: transparent;
     border: none;
     font-size: 16px;
@@ -271,4 +269,187 @@ select{
     border-radius: 9999px;
     box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
     color: #fff;
+}
+
+/* New styles for the notification sidebar */
+.notification-sidebar {
+    border-left: 2000px solid #ccc;
+    width: 100px;
+}
+
+.notification-sidebar h3 {
+    margin-top: 0;
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+}
+
+.notification-item {
+    background-color: #fff;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: #f0f0f0;
+}
+
+.notification-content {
+    font-size: 14px;
+    color: #333;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+}
+
+.delete-account {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-left: 10px;
+    align-self: flex-end;
+}
+
+.delete-account:hover {
+    background-color: darkred;
+}
+
+
+  .button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgb(20, 20, 20);
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+    cursor: pointer;
+    transition-duration: .3s;
+    overflow: hidden;
+    position: relative;
   }
+  
+  .svgIcon {
+    width: 25px;
+    transition-duration: .3s;
+  }
+  
+  .svgIcon path {
+    fill: white;
+  }
+  
+  .button:hover {
+    width: 135px;
+    border-radius: 40px;
+    transition-duration: .3s;
+    background-color: rgb(255, 69, 69);
+    align-items: center;
+  }
+  
+  .button:hover .svgIcon {
+    width: 50px;
+    transition-duration: .3s;
+    transform: translateY(60%);
+  }
+  
+  .button::before {
+    position: absolute;
+    top: -20px;
+    content: "Delete";
+    color: white;
+    transition-duration: .3s;
+    font-size: 2px;
+  }
+  
+  .button:hover::before {
+    font-size: 13px;
+    opacity: 1;
+    transform: translateY(30px);
+    transition-duration: .3s;
+  }
+
+/* From Uiverse.io by TomMussard */ 
+.Btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all .3s ease;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
+    background-color: rgb(255, 65, 65);
+  }
+  
+  /* plus sign */
+  .sign {
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .3s ease;
+    margin-left: -5px;
+  }
+  
+  .sign svg {
+    width: 18px; /* Aumenta el tamaño del ícono */
+    height: 18px;
+  }
+  
+  .sign svg path {
+    fill: white;
+  }
+  
+  /* text */
+  .text {
+    position: absolute;
+    right: 0;
+    width: 0;
+    opacity: 0;
+    color: white;
+    font-size: 1em;
+    font-weight: 600;
+    white-space: nowrap; /* Para evitar que el texto se divida en varias líneas */
+    transition: all .3s ease;
+  }
+  
+  /* hover effect on button width */
+  .Btn:hover {
+    width: 135px; /* Ajusta el ancho del botón en hover */
+    border-radius: 40px;
+    background-color: rgb(255, 65, 65);
+  }
+  
+  /* Ajuste de los elementos internos al hacer hover */
+  .Btn:hover .sign {
+    width: 25%; /* Reduce el ancho reservado para el ícono */
+    padding-left: 0px; /* Ajusta el espacio entre el ícono y el texto */
+  }
+  
+  .Btn:hover .text {
+    opacity: 1;
+    width: 75%; /* Ajusta el ancho del área del texto */
+    padding-right: 10px;
+  }
+  
+  /* button click effect*/
+  .Btn:active {
+    transform: translate(2px ,2px);
+  }
+  
